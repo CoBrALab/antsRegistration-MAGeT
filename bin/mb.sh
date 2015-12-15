@@ -26,8 +26,8 @@ labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/i
 
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
-#regcommand="mb_registerClassic.sh"
-regcommand="mb_registerBSplineSyN.sh"
+regcommand="mb_register.sh"
+#regcommand="mb_registerBSplineSyN.sh"
 
 #Create directories
 mkdir -p .scripts
@@ -66,7 +66,7 @@ for template in $templates
 do
     for atlas in $atlases
     do
-        if [[ ! -e output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0GenericAffine.mat ]]
+        if [[ ! -e output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm ]]
         then
             echo $regcommand $atlas $template output/transforms/atlas-template >> .scripts/${datetime}-mb_register_atlas_template-$(basename $template)
         fi
@@ -88,7 +88,7 @@ do
     for template in $templates
     do
         #If subject and template name are the same, skip the registration step since it should be identity
-        if [[ (! -e output/transforms/template-subject/$(basename $template)-$(basename $subject)0GenericAffine.mat) && ($(basename $subject) != $(basename $template)) ]]
+        if [[ (! -e output/transforms/template-subject/$(basename $template)-$(basename $subject)0_GenericAffine.xfm) && ($(basename $subject) != $(basename $template)) ]]
         then
             echo $regcommand $template $subject output/transforms/template-subject >> .scripts/${datetime}-mb_register_template_subject-$(basename $subject)
         fi
@@ -113,17 +113,17 @@ do
                     #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
                     echo antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                         -o output/labels/candidates/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                        -t output/transforms/template-subject/$(basename $template)-$(basename $subject)1Warp.nii.gz \
-                        -t output/transforms/template-subject/$(basename $template)-$(basename $subject)0GenericAffine.mat \
-                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1Warp.nii.gz \
-                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0GenericAffine.mat \
+                        -t output/transforms/template-subject/$(basename $template)-$(basename $subject)1_NL.xfm \
+                        -t output/transforms/template-subject/$(basename $template)-$(basename $subject)0_GenericAffine.xfm \
+                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1_NL.xfm \
+                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm \
                         >> .scripts/${datetime}-mb_resample-$(basename $subject)
                 else
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
                     echo antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                         -o output/labels/candidates/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1Warp.nii.gz \
-                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0GenericAffine.mat \
+                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1_NL.xfm \
+                        -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm \
                         >> .scripts/${datetime}-mb_resample-$(basename $subject)
                 fi
             done
