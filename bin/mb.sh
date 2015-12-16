@@ -100,7 +100,7 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_register_template_subject-$(basename $subject) ]]
     then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch --processes=4 .scripts/${datetime}-mb_register_template_subject-$(basename $subject) 1000 24:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch --processes=2 .scripts/${datetime}-mb_register_template_subject-$(basename $subject) 10 12:00:00
     fi
 done
 
@@ -146,8 +146,8 @@ do
     #Resamples seem to be very efficient so we need to group more of them together
     if [[ -s .scripts/${datetime}-mb_resample-$(basename $subject) ]]
     then
-        qbatch --processes 2 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
-            --afterok_pattern "${datetime}-mb_register_template_subject-$(basename $subject)*" .scripts/${datetime}-mb_resample-$(basename $subject) 1000 6:00:00 
+        qbatch --processes 4 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
+            --afterok_pattern "${datetime}-mb_register_template_subject-$(basename $subject)*" .scripts/${datetime}-mb_resample-$(basename $subject) 1000 4:00:00
     fi
 done
 
@@ -174,6 +174,6 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_vote-$(basename $subject) ]]
     then
-        qbatch --processes 4 --afterok_pattern "${datetime}-mb_resample-$(basename $subject)*" .scripts/${datetime}-mb_vote-$(basename $subject) 100 0:30:00
+        qbatch --processes 2 --afterok_pattern "${datetime}-mb_resample-$(basename $subject)*" .scripts/${datetime}-mb_vote-$(basename $subject) 100 0:30:00
     fi
 done
