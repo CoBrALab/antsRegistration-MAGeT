@@ -26,7 +26,7 @@ labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/i
 
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
-regcommand="mb_register.sh"
+regcommand="mb_registerClassic.sh"
 #regcommand="mb_registerBSplineSyN.sh"
 
 #Create directories
@@ -69,20 +69,22 @@ done
 #Atlas to template registration
 for template in $templates
 do
+  templatename=$(basename $template)
     for atlas in $atlases
     do
-        if [[ ! -s output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm ]]
+        atlasname=$(basename $atlas)
+        if [[ ! -s output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm ]]
         then
-            echo $regcommand $atlas $template output/transforms/atlas-template >> .scripts/${datetime}-mb_register_atlas_template-$(basename $template)
+            echo $regcommand $atlas $template output/transforms/atlas-template >> .scripts/${datetime}-mb_register_atlas_template-${templatename}
         fi
     done
-    if [[ -s .scripts/${datetime}-mb_register_atlas_template-$(basename $template) ]]
+    if [[ -s .scripts/${datetime}-mb_register_atlas_template-${templatename} ]]
     then
         if [[ -n $hires ]]
         then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem --processes=2 .scripts/${datetime}-mb_register_atlas_template-$(basename $template) 10 24:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem --processes=2 .scripts/${datetime}-mb_register_atlas_template-${templatename} 10 24:00:00
         else
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch --processes=4 .scripts/${datetime}-mb_register_atlas_template-$(basename $template) 4 3:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch --processes=4 .scripts/${datetime}-mb_register_atlas_template-${templatename} 4 3:00:00
         fi
     fi
 done
@@ -90,90 +92,98 @@ done
 #Template to subject registration
 for subject in $subjects
 do
+    subjectname=$(basename $subject)
     for template in $templates
     do
+        templatename=$(basename $template)
         #If subject and template name are the same, skip the registration step since it should be identity
-        if [[ (! -s output/transforms/template-subject/$(basename $template)-$(basename $subject)0_GenericAffine.xfm) && ($(basename $subject) != $(basename $template)) ]]
+        if [[ (! -s output/transforms/template-subject/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
         then
-            echo $regcommand $template $subject output/transforms/template-subject >> .scripts/${datetime}-mb_register_template_subject-$(basename $subject)
+            echo $regcommand $template $subject output/transforms/template-subject >> .scripts/${datetime}-mb_register_template_subject-${subjectname}
         fi
     done
-    if [[ -s .scripts/${datetime}-mb_register_template_subject-$(basename $subject) ]]
+    if [[ -s .scripts/${datetime}-mb_register_template_subject-${subjectname} ]]
     then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch --processes=2 .scripts/${datetime}-mb_register_template_subject-$(basename $subject) 10 12:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch --processes=2 .scripts/${datetime}-mb_register_template_subject-${subjectname} 10 12:00:00
     fi
 done
 
 #Resample candidate labels
 for subject in $subjects
 do
+    subjectname=$(basename $subject)
     for template in $templates
     do
+        templatename=$(basename $template)
         for atlas in $atlases
         do
+            atlasname=$(basename $atlas)
             for label in $labels
             do
-                if [[ (! -s output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label)) && ($(basename $subject) != $(basename $template)) ]]
+                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)) && (${subjectname} != ${templatename}) ]]
                 then
                     #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            -t output/transforms/template-subject/$(basename $template)-$(basename $subject)1_NL.xfm \
-                            -t output/transforms/template-subject/$(basename $template)-$(basename $subject)0_GenericAffine.xfm \
-                            -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1_NL.xfm \
-                            -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            /tmp/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) 1; \
-                        mv /tmp/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label)""" \
-                        >> .scripts/${datetime}-mb_resample-$(basename $subject)
-                elif [[ ! -s output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) ]]
+                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            -t output/transforms/template-subject/${templatename}-${subjectname}1_NL.xfm \
+                            -t output/transforms/template-subject/${templatename}-${subjectname}0_GenericAffine.xfm \
+                            -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
+                            -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) 1; \
+                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)""" \
+                        >> .scripts/${datetime}-mb_resample-${subjectname}
+                elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) ]]
                 then
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)1_NL.xfm \
-                            -t output/transforms/atlas-template/$(basename $atlas)-$(basename $template)0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            /tmp/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) 1; \
-                        mv /tmp/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label) \
-                            output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label)""" \
-                        >> .scripts/${datetime}-mb_resample-$(basename $subject)
+                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
+                            -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) 1; \
+                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)""" \
+                        >> .scripts/${datetime}-mb_resample-${subjectname}
                 fi
             done
         done
     done
     #Resamples seem to be very efficient so we need to group more of them together
-    if [[ -s .scripts/${datetime}-mb_resample-$(basename $subject) ]]
+    if [[ -s .scripts/${datetime}-mb_resample-${subjectname} ]]
     then
         qbatch --processes 4 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
-            --afterok_pattern "${datetime}-mb_register_template_subject-$(basename $subject)*" .scripts/${datetime}-mb_resample-$(basename $subject) 1000 4:00:00
+            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} 1000 8:00:00
     fi
 done
 
 #Voting
 for subject in $subjects
 do
+    subjectname=$(basename $subject)
     for label in $labels
     do
-        if [[ ! -s output/labels/majorityvote/$(basename $subject)_$label ]]
+        if [[ ! -s output/labels/majorityvote/${subjectname}_$label ]]
         then
-            majorityvotingcmd="ImageMath 3 output/labels/majorityvote/$(basename $subject)_$label MajorityVoting"
+            majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_$label MajorityVoting"
             for atlas in $atlases
             do
+                atlasname=$(basename $atlas)
                 for template in $templates
                 do
-                    majorityvotingcmd+=" output/labels/candidates/$(basename $subject)/$(basename $atlas)-$(basename $template)-$(basename $subject)-$(basename $label)"
+                    templatename=$(basename $template)
+                    majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)"
                 done
             done
         echo """$majorityvotingcmd; \
-            ConvertImagePixelType output/labels/majorityvote/$(basename $subject)_$label /tmp/$(basename $subject)_$label 1; \
-            mv /tmp/$(basename $subject)_$label output/labels/majorityvote/$(basename $subject)_$label""" \
-             >> .scripts/${datetime}-mb_vote-$(basename $subject)
+            ConvertImagePixelType output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1; \
+            mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label""" \
+             >> .scripts/${datetime}-mb_vote-${subjectname}
         fi
     done
-    if [[ -s .scripts/${datetime}-mb_vote-$(basename $subject) ]]
+    if [[ -s .scripts/${datetime}-mb_vote-${subjectname} ]]
     then
-        qbatch --processes 2 --afterok_pattern "${datetime}-mb_resample-$(basename $subject)*" .scripts/${datetime}-mb_vote-$(basename $subject) 100 0:30:00
+        qbatch --processes 2 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} 100 0:30:00
     fi
 done
