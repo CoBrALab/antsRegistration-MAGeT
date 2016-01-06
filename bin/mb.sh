@@ -64,6 +64,12 @@ fi
 for subject in $subjects
 do
     mkdir -p output/labels/candidates/$(basename $subject)
+    mkdir -p output/transforms/template-subject/$(basename $subject)
+done
+
+for template in $templates
+do
+    mkdir -p output/transforms/atlas-template/$(basename $template)
 done
 
 #Atlas to template registration
@@ -73,9 +79,9 @@ do
     for atlas in $atlases
     do
         atlasname=$(basename $atlas)
-        if [[ ! -s output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm ]]
+        if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
         then
-            echo $regcommand $atlas $template output/transforms/atlas-template >> .scripts/${datetime}-mb_register_atlas_template-${templatename}
+            echo $regcommand $atlas $template output/transforms/atlas-template/${templatename} >> .scripts/${datetime}-mb_register_atlas_template-${templatename}
         fi
     done
     if [[ -s .scripts/${datetime}-mb_register_atlas_template-${templatename} ]]
@@ -97,9 +103,9 @@ do
     do
         templatename=$(basename $template)
         #If subject and template name are the same, skip the registration step since it should be identity
-        if [[ (! -s output/transforms/template-subject/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
+        if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
         then
-            echo $regcommand $template $subject output/transforms/template-subject >> .scripts/${datetime}-mb_register_template_subject-${subjectname}
+            echo $regcommand $template $subject output/transforms/template-subject/${subjectname} >> .scripts/${datetime}-mb_register_template_subject-${subjectname}
         fi
     done
     if [[ -s .scripts/${datetime}-mb_register_template_subject-${subjectname} ]]
@@ -126,10 +132,10 @@ do
                     #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            -t output/transforms/template-subject/${templatename}-${subjectname}1_NL.xfm \
-                            -t output/transforms/template-subject/${templatename}-${subjectname}0_GenericAffine.xfm \
-                            -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                            -t output/transforms/template-subject//${subjectname}/${templatename}-${subjectname}1_NL.xfm \
+                            -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
                         ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
@@ -140,8 +146,8 @@ do
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
                         ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
