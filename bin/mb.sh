@@ -120,31 +120,32 @@ do
             atlasname=$(basename $atlas)
             for label in $labels
             do
-                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)) && (${subjectname} != ${templatename}) ]]
+                labelname=$(basename $label)
+                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname) && (${subjectname} != ${templatename}) ]]
                 then
                     #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/template-subject/${templatename}-${subjectname}1_NL.xfm \
                             -t output/transforms/template-subject/${templatename}-${subjectname}0_GenericAffine.xfm \
                             -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
                             -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) 1; \
-                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)""" \
+                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
+                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname""" \
                         >> .scripts/${datetime}-mb_resample-${subjectname}
-                elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) ]]
+                elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
                 then
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
                     echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
+                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/atlas-template/${atlasname}-${templatename}1_NL.xfm \
                             -t output/transforms/atlas-template/${atlasname}-${templatename}0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) 1; \
-                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$(basename $label) \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)""" \
+                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
+                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname""" \
                         >> .scripts/${datetime}-mb_resample-${subjectname}
                 fi
             done
@@ -164,6 +165,7 @@ do
     subjectname=$(basename $subject)
     for label in $labels
     do
+        labelname=$(basename $label)
         if [[ ! -s output/labels/majorityvote/${subjectname}_$label ]]
         then
             majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_$label MajorityVoting"
@@ -173,7 +175,7 @@ do
                 for template in $templates
                 do
                     templatename=$(basename $template)
-                    majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$(basename $label)"
+                    majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"
                 done
             done
         echo """$majorityvotingcmd; \
