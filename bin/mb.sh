@@ -139,8 +139,7 @@ do
                         ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname""" \
-                        >> .scripts/${datetime}-mb_resample-${subjectname}
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
                 elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
                 then
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
@@ -151,12 +150,11 @@ do
                         ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname""" \
-                        >> .scripts/${datetime}-mb_resample-${subjectname}
+                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
                 fi
             done
         done
-    done
+    done >> .scripts/${datetime}-mb_resample-${subjectname}
     #Resamples seem to be very efficient so we need to group more of them together
     if [[ -s .scripts/${datetime}-mb_resample-${subjectname} ]]
     then
