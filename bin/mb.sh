@@ -26,7 +26,7 @@ labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/i
 
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
-regcommand="mb_registerClassic.sh"
+regcommand="mb_register.sh"
 #regcommand="mb_registerBSplineSyN.sh"
 
 #Create directories
