@@ -46,7 +46,7 @@ MB_ENV=$(_script_home)
 export MB_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
-PATH="$MB_ENV/bin:$PATH"
+PATH="$MB_ENV/bin:$MB_ENV/bin/qbatch:$PATH"
 export PATH
 
 _OLD_VIRTUAL_PYTHONPATH="$PYTHONPATH"

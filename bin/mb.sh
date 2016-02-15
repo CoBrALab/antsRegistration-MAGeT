@@ -35,6 +35,7 @@ mkdir -p output/transforms/atlas-template
 mkdir -p output/transforms/template-subject
 mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
+mkdir -p logs
 #mkdir -p output/labels/STAPLE
 #mkdir -p output/labels/jointfusion
 
@@ -88,9 +89,9 @@ do
     then
         if [[ -n $hires ]]
         then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem --processes=2 .scripts/${datetime}-mb_register_atlas_template-${templatename} 10 24:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem -j 2 -c 10 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- -l walltime=24:00:00 &
         else
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch --processes=4 .scripts/${datetime}-mb_register_atlas_template-${templatename} 4 3:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- -l walltime=12:00:00 &
         fi
     fi
 done
@@ -110,7 +111,7 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_register_template_subject-${subjectname} ]]
     then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch --processes=2 .scripts/${datetime}-mb_register_template_subject-${subjectname} 10 12:00:00
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 .scripts/${datetime}-mb_register_template_subject-${subjectname} -- -l walltime=12:00:00 &
     fi
 done
 
@@ -158,8 +159,8 @@ do
     #Resamples seem to be very efficient so we need to group more of them together
     if [[ -s .scripts/${datetime}-mb_resample-${subjectname} ]]
     then
-        qbatch --processes 4 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
-            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} 1000 8:00:00
+        qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
+            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} -- -l walltime=12:00:00 &
     fi
 done
 
@@ -190,6 +191,6 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_vote-${subjectname} ]]
     then
-        qbatch --processes 2 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} 100 0:30:00
+        qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} -- -l walltime=4:00:00 &
     fi
 done

@@ -1,0 +1,4 @@
+[submodule "bin/qbatch"]
+	path = bin/qbatch
+	url = https://github.com/gdevenyi/qbatch.git
+	branch = features
