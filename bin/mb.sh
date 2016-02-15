@@ -136,7 +136,7 @@ do
                 if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname) && (${subjectname} != ${templatename}) ]]
                 then
                     #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
-                    echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
+                    echo """ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/template-subject//${subjectname}/${templatename}-${subjectname}1_NL.xfm \
                             -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
@@ -149,7 +149,7 @@ do
                 elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
                 then
                     #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
-                    echo """antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
+                    echo """ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 antsApplyTransforms --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
@@ -178,7 +178,7 @@ do
         labelname=$(basename $label)
         if [[ ! -s output/labels/majorityvote/${subjectname}_$label ]]
         then
-            majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_$label MajorityVoting"
+            majorityvotingcmd="ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 ImageMath 3 output/labels/majorityvote/${subjectname}_$label MajorityVoting"
             for atlas in $atlases
             do
                 atlasname=$(basename $atlas)
