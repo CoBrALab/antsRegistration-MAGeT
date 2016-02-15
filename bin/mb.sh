@@ -142,7 +142,7 @@ do
                             -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
+                        ConvertImage output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
                             output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
@@ -153,7 +153,7 @@ do
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
-                        ConvertImagePixelType output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
+                        ConvertImage output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
                             output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
@@ -189,7 +189,7 @@ do
                 done
             done
         echo """$majorityvotingcmd; \
-            ConvertImagePixelType output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1; \
+            ConvertImage output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1; \
             mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label""" \
              >> .scripts/${datetime}-mb_vote-${subjectname}
         fi
