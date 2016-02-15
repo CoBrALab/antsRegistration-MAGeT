@@ -91,9 +91,9 @@ do
     then
         if [[ -n $hires ]]
         then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem -j 2 -c 10 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- -l walltime=24:00:00 &
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem -j 2 -c 10 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- "#PBS -l walltime=24:00:00" &
         else
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- -l walltime=12:00:00 &
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- "#PBS -l walltime=12:00:00" &
         fi
     fi
 done
@@ -114,7 +114,7 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_register_template_subject-${subjectname} ]]
     then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 .scripts/${datetime}-mb_register_template_subject-${subjectname} -- -l walltime=12:00:00 &
+        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 .scripts/${datetime}-mb_register_template_subject-${subjectname} -- "#PBS -l walltime=12:00:00" &
     fi
 done
 
@@ -165,7 +165,7 @@ do
     if [[ -s .scripts/${datetime}-mb_resample-${subjectname} ]]
     then
         qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
-            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} -- -l walltime=12:00:00 &
+            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} -- "#PBS -l walltime=12:00:00" &
     fi
 done
 
@@ -196,6 +196,6 @@ do
     done
     if [[ -s .scripts/${datetime}-mb_vote-${subjectname} ]]
     then
-        qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} -- -l walltime=4:00:00 &
+        qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} -- "#PBS -l walltime=4:00:00" &
     fi
 done
