@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #Make the script stop immediately with errors
 export LC_ALL=C
 set -e
