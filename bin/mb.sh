@@ -73,7 +73,9 @@ do
     mkdir -p output/transforms/atlas-template/$(basename $template)
 done
 
+
 #Atlas to template registration
+echo "Computing Atlas to Template Registrations"
 for template in $templates
 do
   templatename=$(basename $template)
@@ -97,6 +99,7 @@ do
 done
 
 #Template to subject registration
+echo "Computing Template to Subject Registrations"
 for subject in $subjects
 do
     subjectname=$(basename $subject)
@@ -115,7 +118,9 @@ do
     fi
 done
 
+
 #Resample candidate labels
+echo "Computing Label Resamples"
 for subject in $subjects
 do
     subjectname=$(basename $subject)
