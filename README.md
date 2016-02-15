@@ -1,62 +1,43 @@
-#MAGeT Reimplementation
+#MAGeT Implementation with antsRegistration
 
-File types supported is mnc, nii, nii.gz, maybe others
+File types supported is mnc, nii, nii.gz, maybe others, in theory whatever ANTs supports
 
+
+# File/Directory Structure
+
+```
+#Assuming one atlas, one subject, on template, generalize for N...
 input/
     atlas/
-        BASENAME_t1.ext
-        [BASENAME_t2.ext] - coregistered to T1
-        BASENAME_label1.ext
-        [BASENAME_label2.ext] - additional labels
-        [BASENAME_labelN.ext] - arbitrary numbers of labels
-        [BASENAME_mask.ext] - brain mask, used in later registration stages
+        atlas1_t1.ext
+        <atlas1_t2.ext> - coregistered to T1
+        atlas1_label_name.ext
+        <atlas1_label_name2.ext> - additional labels
+        <atlas1_label_nameN.ext> - arbitrary numbers of labels
+        <atlas1_mask.ext> - brain mask, used to concentrate registration
     template/
-        BASENAME_t1.ext
-        [BASENAME_t2.ext] - coregistered to T1
-        [BASENAME_mask.ext] - brain mask, used in later registration stages
+        template1_t1.ext
+        <template1_t2.ext> - coregistered to T1, requires atlas to also have this contrast
+        <template1_mask.ext> - brain mask, used to concentrate registration
     subject/
-        BASENAME_t1.ext
-        [BASENAME_t2.ext] - coregistered to T1
-        [BASENAME_mask.ext] - brain mask, used in later registration stages
+        subject1_t1.ext
+        <subject1_t2.ext> - coregistered to T1, requires template to also have this contrast
+        <subject1_mask.ext> - brain mask, used to concentrate registration
+output/
+    transforms/
+        atlas-template/
+            template1_t1.ext/
+                atlas1_t1.ext-template1_t1.ext0_GenericAffine.xfm
+                atlas1_t1.ext-template1_t1.ext1_NL.xfm
+        template-subject/
+            subject1_t1.ext/
+                template1_t1.ext-subject1_t1.ext0_GenericAffine.xfm
+                template1_t1.ext-subject1_t1.ext1_NL.xfm
+    labels/
+        candidates/
+            subject1_t1.ext/
+                atlas1_t1.ext-template1_t1.ext-subject1_t1.ext-atlas1_label_name.ext                   
+                
+```
 
-#Basic Implementation
 
-Stage1 <all registrations independent>
-Job names ISODATETIME-mb_template
-antsRegistration of atlas->template
- - use COM mode in ants
- - rigid registration
- - no mask
-+
- - affine with headmask
-+
- - affine with brainmask
-+
- - nonlinear with brainmask
-
-Stage2 <all registrations independent>
-Job names ISODATETIME-mb_subject-subjectfilename
-antsRegistration of template->subject
- - use COM mode in ants
- - rigid registration
- - no mask
-
-+ 
- - affine with brainmask
- - nonlinear with brainmask
-
-Stage3 <depends on mb_template && mb_subject_subjectfilename>
-Job names ISODATETIME-mb_resample-subjectfilename
-Apply transforms of labels atlas->template->subject
-- antsApplyTransforms
-
-Stage4 <depends on mb_resample-subjectfilename>
-Job name ISODATETIME-mb_vote-subjectfilename
-Voting of final labels
-- MajorityVoting
-- STAPLE
-
-Memory/Timing Issues
-Using 1x1x1 atlas and SyN registration 2.93GB per registration, ~2 hours
-
-Using full-res atlas runs out of RAM on 16GB nodes, should we use 32GB nodes for atlas-template?
