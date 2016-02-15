@@ -38,6 +38,8 @@ output/
             subject1_t1.ext/
                 atlas1_t1.ext-template1_t1.ext-subject1_t1.ext-atlas1_label_name.ext                   
                 
+        majorityvote/
+            subject1_label_name.ext
 ```
 
 
