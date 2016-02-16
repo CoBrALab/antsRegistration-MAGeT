@@ -51,7 +51,7 @@ echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -
 if [[ $(stat -L --printf="%s" $(echo $atlases | cut -d " " -f 1)) -gt 200000000 ]]
 then
     echo "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes"
-    hires=1
+    hires="--highmem"
 fi
 
 
@@ -84,18 +84,9 @@ do
         atlasname=$(basename $atlas)
         if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
         then
-            echo $regcommand $atlas $template output/transforms/atlas-template/${templatename} >> .scripts/${datetime}-mb_register_atlas_template-${templatename}
+            echo $regcommand $atlas $template output/transforms/atlas-template/${templatename}
         fi
-    done
-    if [[ -s .scripts/${datetime}-mb_register_atlas_template-${templatename} ]]
-    then
-        if [[ -n $hires ]]
-        then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch --highmem -j 2 -c 10 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- "#PBS -l walltime=24:00:00" &
-        else
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 .scripts/${datetime}-mb_register_atlas_template-${templatename} -- "#PBS -l walltime=12:00:00" &
-        fi
-    fi
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} - -- "#PBS -l walltime=12:00:00"
 done
 
 #Template to subject registration
@@ -109,13 +100,9 @@ do
         #If subject and template name are the same, skip the registration step since it should be identity
         if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
         then
-            echo $regcommand $template $subject output/transforms/template-subject/${subjectname} >> .scripts/${datetime}-mb_register_template_subject-${subjectname}
+            echo $regcommand $template $subject output/transforms/template-subject/${subjectname}
         fi
-    done
-    if [[ -s .scripts/${datetime}-mb_register_template_subject-${subjectname} ]]
-    then
-        ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 .scripts/${datetime}-mb_register_template_subject-${subjectname} -- "#PBS -l walltime=12:00:00" &
-    fi
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} - -- "#PBS -l walltime=12:00:00"
 done
 
 
@@ -160,13 +147,7 @@ do
                 fi
             done
         done
-    done >> .scripts/${datetime}-mb_resample-${subjectname}
-    #Resamples seem to be very efficient so we need to group more of them together
-    if [[ -s .scripts/${datetime}-mb_resample-${subjectname} ]]
-    then
-        qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" \
-            --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" .scripts/${datetime}-mb_resample-${subjectname} -- "#PBS -l walltime=12:00:00" &
-    fi
+    done |  qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} - -- "#PBS -l walltime=12:00:00"
 done
 
 #Voting
@@ -190,12 +171,7 @@ do
             done
         echo """$majorityvotingcmd; \
             ConvertImage output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1; \
-            mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label""" \
-             >> .scripts/${datetime}-mb_vote-${subjectname}
+            mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label"""
         fi
-    done
-    if [[ -s .scripts/${datetime}-mb_vote-${subjectname} ]]
-    then
-        qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" .scripts/${datetime}-mb_vote-${subjectname} -- "#PBS -l walltime=4:00:00" &
-    fi
+    done | qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} - -- "#PBS -l walltime=4:00:00"
 done
