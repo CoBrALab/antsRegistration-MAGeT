@@ -15,18 +15,23 @@ pool=(input/atlas/*t1.mnc)
 
 for fold in $(seq $nfolds)
 do
-    #shuffle
+    #Shuffle inputs in a random list using sort
     pool=($(printf "%s\n" "${pool[@]}" | sort -R))
+    #Since list is now random, slice array according to numbers provided before
     atlases=("${pool[@]:0:$natlases}")
     subjects=("${pool[@]:$natlases}")
     templates=("${subjects[@]:0:$ntemplates}")
 
-    folddir=cross_validation/${natlases}atlases_${ntemplates}templates_fold$fold
+    #Setup folders for random run
+    folddir=NFOLDCV/${natlases}atlases_${ntemplates}templates_fold$fold
     mkdir -p $folddir/input/{atlas,template,subject}
     mkdir -p $folddir/output/labels/majorityvote
+
+    #Link in precomputed transforms and candidate labels
     ln -s $(readlink -f output/transforms) $folddir/output/transforms
     ln -s $(readlink -f output/labels/candidates) $folddir/output/labels/candidates
 
+    #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
     tmp=("${atlases[@]/_t1.mnc/*}")
     cp -l ${tmp[@]} $folddir/input/atlas
     cp -l "${templates[@]}" $folddir/input/template
