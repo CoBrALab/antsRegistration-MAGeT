@@ -46,12 +46,17 @@ echo "Found $(echo $models | wc -w) models in input/models"
 
 echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -w) \* $(echo $labels | wc -w)) labels completed"
 
-if [[ $(stat -L --printf="%s" $(echo $atlases | cut -d " " -f 1)) -gt 200000000 ]]
-then
-    echo "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes"
-    hires="--highmem"
-fi
-
+echo "Checking dimensions of first atlas"
+SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) | tr 'x' ' ') )
+for dim in ${SIZE[@]}
+do
+    if [[ $(echo "$dim < 1.0" | bc) ]]
+    then
+      echo "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes"
+      hires="--highmem"
+      break
+    fi
+done
 
 if [[ -n $1 ]]
 then
