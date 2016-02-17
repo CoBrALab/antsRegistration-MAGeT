@@ -1,4 +1,4 @@
 [submodule "bin/qbatch"]
 	path = bin/qbatch
-	url = https://github.com/gdevenyi/qbatch.git
-	branch = features
+	url = https://github.com/pipitone/qbatch.git
+	branch = master
