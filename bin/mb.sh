@@ -47,7 +47,7 @@ echo "Found $(echo $models | wc -w) models in input/models"
 echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -w) \* $(echo $labels | wc -w)) labels completed"
 
 echo "Checking dimensions of first atlas"
-SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) | tr 'x' ' ') )
+SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) 1 | tr 'x' ' ') )
 for dim in ${SIZE[@]}
 do
     if [[ $(echo "$dim < 1.0" | bc) -eq 1 ]]
