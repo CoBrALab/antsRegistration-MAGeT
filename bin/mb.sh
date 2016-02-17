@@ -85,7 +85,7 @@ do
         then
             echo $regcommand $atlas $template output/transforms/atlas-template/${templatename}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} - -- "#PBS -l walltime=12:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} - -- "#PBS -l walltime=5:00:00"
 done
 
 #Template to subject registration
@@ -101,7 +101,7 @@ do
         then
             echo $regcommand $template $subject output/transforms/template-subject/${subjectname}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} - -- "#PBS -l walltime=12:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} - -- "#PBS -l walltime=10:00:00"
 done
 
 
