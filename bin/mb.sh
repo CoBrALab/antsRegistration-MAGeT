@@ -1,7 +1,6 @@
 #!/bin/bash -e
 #Make the script stop immediately with errors
 export LC_ALL=C
-set -e
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
 datetime=$(date -u +%F-%R:%S)
