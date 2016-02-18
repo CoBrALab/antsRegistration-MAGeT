@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 movingfile=$1
 fixedfile=$2
 outputdir=$3
