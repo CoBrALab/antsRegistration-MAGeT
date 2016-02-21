@@ -131,9 +131,9 @@ do
                             -t output/transforms/template-subject//${subjectname}/${templatename}-${subjectname}1_NL.xfm \
                             -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm && \
                         ConvertImage 3 output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1 && \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
                             output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
                 elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
@@ -142,9 +142,9 @@ do
                     echo """antsApplyTransforms -d 3 --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
                             -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
                             -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm; \
+                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm && \
                         ConvertImage 3 output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1; \
+                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1 && \
                         mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
                             output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
                 fi
@@ -172,8 +172,8 @@ do
                     majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"
                 done
             done
-        echo """$majorityvotingcmd; \
-            ConvertImage 3 output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1; \
+        echo """$majorityvotingcmd && \
+            ConvertImage 3 output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1 && \
             mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label"""
         fi
     done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} - -- "#PBS -l walltime=4:00:00"
