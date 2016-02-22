@@ -72,7 +72,7 @@ do
                         -o output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname \
                         -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
                         -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm && \
-                    ConvertImage output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname \
+                    ConvertImage 3 output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname \
                         /tmp/${atlasname}-${templatename}-$labelname 1 && \
                     mv /tmp/${atlasname}-${templatename}-$labelname \
                         output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname"""
@@ -97,7 +97,7 @@ do
                 majorityvotingcmd+=" output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname"
             done
         echo """$majorityvotingcmd && \
-            ConvertImage output/multiatlas/labels/majorityvote/${templatename}_$label /tmp/${templatename}_$label 1 && \
+            ConvertImage 3 output/multiatlas/labels/majorityvote/${templatename}_$label /tmp/${templatename}_$label 1 && \
             mv /tmp/${templatename}_$label output/multiatlas/labels/majorityvote/${templatename}_$label"""
         fi
     done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb-multiatlas_resample-${templatename}*" --jobname ${datetime}-mb-multiatlas_vote-${templatename} - -- "#PBS -l walltime=4:00:00"
