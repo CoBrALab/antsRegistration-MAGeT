@@ -2,6 +2,15 @@
 
 File types supported is mnc, nii, nii.gz, maybe others, in theory whatever ANTs supports
 
+#How to get/run
+```sh
+> git clone --recursive https://github.com/CobraLab/antsRegistration-MAGeT.git
+> source antsRegistration-MAGeT/bin/activate
+# Setup an input directory as per below
+# Make sure ANTs tools are available (ex: module load scinet or module load ANTs/git)
+> mb.sh
+```
+
 
 # File/Directory Structure
 
@@ -15,14 +24,17 @@ input/
         <atlas1_label_name2.ext> - additional labels
         <atlas1_label_nameN.ext> - arbitrary numbers of labels
         <atlas1_mask.ext> - brain mask, used to concentrate registration
+        ....
     template/
-        template1_t1.ext
-        <template1_t2.ext> - coregistered to T1, requires atlas to also have this contrast
-        <template1_mask.ext> - brain mask, used to concentrate registration
+        subject1_t1.ext - filename should match subject with same MRI
+        <subject1_t2.ext> - coregistered to T1, requires atlas to also have this contrast
+        <subject1_mask.ext> - brain mask, used to concentrate registration
+        ....
     subject/
         subject1_t1.ext
         <subject1_t2.ext> - coregistered to T1, requires template to also have this contrast
         <subject1_mask.ext> - brain mask, used to concentrate registration
+        ....
 output/
     transforms/
         atlas-template/
