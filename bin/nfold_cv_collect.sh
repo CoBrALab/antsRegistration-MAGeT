@@ -14,7 +14,8 @@ do
     fold=$(basename $dir | grep -Eho 'fold[0-9]+' | sed 's/fold//g')
     for label in $dir/output/labels/majorityvote/*.mnc
     do
-        LabelOverlapMeasures 3 input/atlas/$(basename $label | sed 's#_t1.mnc##g') $label /tmp/$(basename $label).csv
-        tail -n +2 /tmp/$(basename $label).csv | awk -vT="$(basename $label),$atlases,$templates,$fold," '{ print T $0 }' >> $output
-    done
+        cat <<-EOT
+        LabelOverlapMeasures 3 input/atlas/$(basename $label | sed 's#_t1.mnc##g') $label >(tail -n +2) | awk -vT="$(basename $label),$atlases,$templates,$fold," '{ print T \$0 }' >> $output
+EOT
+    done | parallel -j$(nproc) -v
 done
