@@ -32,4 +32,5 @@ do
     tmp=("${atlases[@]/_t1.mnc/*}")
     cp -l ${tmp[@]} $folddir/input/atlas
     cp -l "${templates[@]}" $folddir/input/template
+    (cd $folddir; mb-multiatlas.sh)
 done

@@ -36,4 +36,5 @@ do
     cp -l ${tmp[@]} $folddir/input/atlas
     cp -l "${templates[@]}" $folddir/input/template
     cp -l "${subjects[@]}" $folddir/input/subject
+    (cd $folddir; mb.sh)
 done
