@@ -78,8 +78,8 @@ do
                         output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-$labelname"""
             fi
         done
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 1000 --jobname ${datetime}-mb-multiatlas_resample-${templatename} - -- "#PBS -l walltime=12:00:00"
-done
+    done
+done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 1000 --jobname ${datetime}-mb-multiatlas_resample - -- "#PBS -l walltime=3:00:00"
 
 #Voting
 for template in $templates
@@ -100,5 +100,5 @@ do
             ConvertImage 3 output/multiatlas/labels/majorityvote/${templatename}_$label /tmp/${templatename}_$label 1 && \
             mv /tmp/${templatename}_$label output/multiatlas/labels/majorityvote/${templatename}_$label"""
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb-multiatlas_resample-${templatename}*" --jobname ${datetime}-mb-multiatlas_vote-${templatename} - -- "#PBS -l walltime=4:00:00"
-done
+    done
+done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb-multiatlas_resample*" --jobname ${datetime}-mb-multiatlas_vote - -- "#PBS -l walltime=4:00:00"
