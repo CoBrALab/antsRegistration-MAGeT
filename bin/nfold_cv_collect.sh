@@ -17,5 +17,5 @@ do
         cat <<-EOT
         LabelOverlapMeasures 3 input/atlas/$(basename $label | sed 's#_t1.mnc##g') $label >(tail -n +2) | awk -vT="$(basename $label),$atlases,$templates,$fold," '{ print T \$0 }' >> $output
 EOT
-    done | parallel -j$(nproc) -v
+    done | parallel -v
 done

@@ -14,7 +14,7 @@ do
     for label in $dir/output/multiatlas/labels/majorityvote/*.mnc
     do
         cat <<-EOT
-        LabelOverlapMeasures 3 input/atlas/$(basename $label | sed 's#_t1.mnc##g') $label <(tail -n +2) | awk -vT="$(basename $label),$atlases,0,$fold," '{ print T \$0 }' >> $output
+        LabelOverlapMeasures 3 input/atlas/$(basename $label | sed 's#_t1.mnc##g') $label >(tail -n +2) | awk -vT="$(basename $label),$atlases,0,$fold," '{ print T \$0 }' >> $output
 EOT
-    done | parallel -j$(nproc) -v
+    done | parallel -v
 done
