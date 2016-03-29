@@ -89,7 +89,7 @@ do
         then
             echo $regcommand $atlas $template output/transforms/atlas-template/${templatename}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} - -- "#PBS -l walltime=5:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
 done
 
 #Template to subject registration
@@ -105,7 +105,7 @@ do
         then
             echo $regcommand $template $subject output/transforms/template-subject/${subjectname}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} - -- "#PBS -l walltime=10:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
 done
 
 
@@ -150,7 +150,7 @@ do
                 fi
             done
         done
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} - -- "#PBS -l walltime=12:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 1000 --afterok_pattern "${datetime}-mb_register_atlas_template*" --afterok_pattern "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
 done
 
 #Voting
@@ -176,5 +176,5 @@ do
             ConvertImage 3 output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1 && \
             mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label"""
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} - -- "#PBS -l walltime=4:00:00"
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok_pattern "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
 done
