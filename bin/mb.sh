@@ -26,6 +26,7 @@ labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/i
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
 regcommand="mb_register.sh"
+modelregcommand="mb_register_model.sh"
 
 #Create directories
 mkdir -p .scripts
@@ -76,6 +77,22 @@ do
     mkdir -p output/transforms/atlas-template/$(basename $template)
 done
 
+#Template and subject to model space registrations
+if [[ -n $models ]]
+then
+mkdir -p output/transforms/modelspace
+for model in $models
+do
+    for subject in $subjects
+    do
+        subjectname=$(basename $subject)
+            if [[ ! -s output/transforms/modelspace/${subjectname}0_GenericAffine.xfm ]]
+            then
+                echo $modelregcommand $subject $model output/transforms/modelspace
+            fi
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 --jobname ${datetime}-mb_register_modelspace-${subjectname} --walltime 5:00:00 -
+done
+fi
 
 #Atlas to template registration
 echo "Computing Atlas to Template Registrations"
@@ -89,7 +106,7 @@ do
         then
             echo $regcommand $atlas $template output/transforms/atlas-template/${templatename}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --afterok_pattern "${datetime}-mb_register_modelspace-${templatename}*" --walltime 5:00:00 -
 done
 
 #Template to subject registration
@@ -105,7 +122,7 @@ do
         then
             echo $regcommand $template $subject output/transforms/template-subject/${subjectname}
         fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --afterok_pattern "${datetime}-mb_register_modelspace*" --walltime 10:00:00 -
 done
 
 
