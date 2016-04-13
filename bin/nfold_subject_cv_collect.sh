@@ -1,4 +1,12 @@
 #!/bin/bash
+
+if [[ $3 ]]
+then
+    targetdir=$3
+else
+    targetdir=.
+fi
+
 if [[ ! -n $1 ]]
 then
     echo "Output file not specified"
@@ -7,7 +15,7 @@ fi
 
 output=$1
 echo "file,atlases,templates,fold,Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" > $output
-for dir in NFOLDCV/*
+for dir in $targetdir/NFOLDCV/${2}*
 do
     atlases=$(basename $dir | grep -Eho '[0-9]+atlases' | sed 's/atlases//g')
     templates=$(basename $dir | grep -Eho '[0-9]+templates' | sed 's/templates//g')

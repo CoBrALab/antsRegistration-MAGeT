@@ -11,8 +11,14 @@
 nfolds=$1
 natlases=$2
 ntemplates=$3
-#pool=(input/atlas/*t1.mnc)
 origpool=(input/atlas/*t1.mnc)
+
+if [[ $4 ]]
+then
+    targetdir=$4
+else
+    targetdir=.
+fi
 
 i=0
 for subject in "${origpool[@]}"
@@ -20,6 +26,12 @@ do
 echo $subject
 
 subjectname=$(basename $subject)
+if [[ -d $targetdir/NFOLDCV/${natlases}atlases_${ntemplates}templates_fold/$subjectname ]]
+then
+    ((i++))
+    continue
+fi
+
 pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
 
   for fold in $(seq $nfolds)
@@ -32,7 +44,7 @@ pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
       templates=("${pool[@]:$natlases:$ntemplates}")
 
       #Setup folders for random run
-      folddir=NFOLDCV/${natlases}atlases_${ntemplates}templates_fold${fold}/${subjectname}
+      folddir=$targetdir/NFOLDCV/${natlases}atlases_${ntemplates}templates_fold${fold}/${subjectname}
       mkdir -p $folddir/input/{atlas,template,subject}
       mkdir -p $folddir/output/labels/majorityvote
 
@@ -42,11 +54,12 @@ pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
 
       #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
       tmp=("${atlases[@]/_t1.mnc/*}")
-      cp -l ${tmp[@]} $folddir/input/atlas
-      cp -l "${templates[@]}" $folddir/input/template
-      cp -l $subject $folddir/input/subject
+      ln -s ${tmp[@]} $folddir/input/atlas
+      ln -s "${templates[@]}" $folddir/input/template
+      ln -s $subject $folddir/input/subject
       (cd $folddir; mb.sh)
   done
 ((i++))
 
 done
+nfold_subject_cv_collect.sh ${natlases}atlases_${ntemplates}templates.csv ${natlases}atlases_${ntemplates}templates $targetdir && rm -r $targetdir/NFOLDCV/${natlases}atlases_${ntemplates}templates_fold*

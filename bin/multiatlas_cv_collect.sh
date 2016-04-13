@@ -1,4 +1,15 @@
 #!/bin/bash
+#Script to generate csv file of LabelOverlapMeasures from a multiatlas_cv run
+#Run with multiatlas_cv_collect.sh <output.csv> <optional matching pattern> <optional target dir>
+
+
+if [[ $3 ]]
+then
+    targetdir=$3
+else
+    targetdir=.
+fi
+
 if [[ ! -n $1 ]]
 then
     echo "Output file not specified"
@@ -7,7 +18,7 @@ fi
 
 output=$1
 echo "file,atlases,templates,fold,Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" > $output
-for dir in multiatlas/*
+for dir in $targetdir/multiatlas/${2}*
 do
     atlases=$(basename $dir | grep -Eho '[0-9]+atlases' | sed 's/atlases//g')
     fold=$(basename $dir | grep -Eho 'fold[0-9]+' | sed 's/fold//g')

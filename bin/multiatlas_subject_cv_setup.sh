@@ -2,7 +2,7 @@
 # Generator for multi-atlas validation of MaGeT, shamelessly stolen from ealier script
 # Start by running a mb run with all inputs as atlases, templates and subjects, skip voting
 # This primes the pipeline with all the possible registrations
-# Then, run multiatlas_setup.sh <nfolds> <natlases>
+# Then, run multiatlas_setup.sh <nfolds> <natlases> <optional targetdir>
 # This shuffles the list of inputs and creates <nfolds> random samples satisftying
 # <natlases>
 # Afterwards links into the directory the already processed transforms and candidate labels
@@ -12,8 +12,12 @@ nfolds=$1
 natlases=$2
 origpool=(input/atlas/*t1.mnc)
 
-#pool=(input/atlas/*t1.mnc)
-origpool=(input/atlas/*t1.mnc)
+if [[ $3 ]]
+then
+    targetdir=$3
+else
+    targetdir=.
+fi
 
 i=0
 for subject in "${origpool[@]}"
@@ -21,6 +25,12 @@ do
 echo $subject
 
 subjectname=$(basename $subject)
+if [[ -d $targetdir/multiatlas/${natlases}atlases_fold1/$subjectname ]]
+then
+    ((i++))
+    continue
+fi
+
 pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
 
 for fold in $(seq $nfolds)
@@ -32,7 +42,7 @@ do
     #templates=("${pool[@]:$natlases}")
 
     #Setup folders for random run
-    folddir=multiatlas/${natlases}atlases_fold$fold/$subjectname
+    folddir=$targetdir/multiatlas/${natlases}atlases_fold$fold/${subjectname}
     mkdir -p $folddir/input/{atlas,template}
     mkdir -p $folddir/output/multiatlas/labels/majorityvote
 
@@ -41,10 +51,11 @@ do
 
     #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
     tmp=("${atlases[@]/_t1.mnc/*}")
-    cp -l ${tmp[@]} $folddir/input/atlas
-    cp -l $subject $folddir/input/template
+    ln -s ${tmp[@]} $folddir/input/atlas
+    ln -s $subject $folddir/input/template
     (cd $folddir; mb-multiatlas.sh)
 done
 ((i++))
 
 done
+multiatlas_subject_cv_collect.sh ${natlases}atlases_0templates.csv ${natlases}atlases $targetdir && rm -r $targetdir/multiatlas/${natlases}atlases_fold*
