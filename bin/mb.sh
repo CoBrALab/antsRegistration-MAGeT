@@ -46,6 +46,12 @@ echo "Found $(echo $models | wc -w) models in input/models"
 
 echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -w) \* $(echo $labels | wc -w)) labels completed"
 
+if [[ -n $1 ]]
+then
+    echo Status only requested, terminating
+    exit 0
+fi
+
 echo "Checking dimensions of first atlas"
 SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) 1 | tr 'x' ' ') )
 for dim in ${SIZE[@]}
@@ -57,12 +63,6 @@ do
       break
     fi
 done
-
-if [[ -n $1 ]]
-then
-    echo Status only requested, terminating
-    exit 0
-fi
 
 #Directory Setup
 for subject in $subjects
