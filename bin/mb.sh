@@ -123,30 +123,9 @@ do
             for label in $labels
             do
                 labelname=$(basename $label)
-                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname) && (${subjectname} != ${templatename}) ]]
+                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
                 then
-                    #Transforms are applied like a stack (or Matrix algebra) so last is applied first, this goes atlas->template->subject
-                    echo """antsApplyTransforms -d 3 --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            -t output/transforms/template-subject//${subjectname}/${templatename}-${subjectname}1_NL.xfm \
-                            -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm && \
-                        ConvertImage 3 output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1 && \
-                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
-                elif [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
-                then
-                    #In the case the filename of subject and template are the same, assume identical subjects, skip the registration
-                    echo """antsApplyTransforms -d 3 --interpolation MultiLabel -r $subject -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${label}/g") \
-                            -o output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
-                            -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm && \
-                        ConvertImage 3 output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            /tmp/${atlasname}-${templatename}-${subjectname}-$labelname 1 && \
-                        mv /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
-                            output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"""
+                    echo "mb_resample.sh $labelname $atlas $templatename $subject"
                 fi
             done
         done
