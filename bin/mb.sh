@@ -123,9 +123,9 @@ do
             for label in $labels
             do
                 labelname=$(basename $label)
-                if [[ (! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
+                if [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
                 then
-                    echo "mb_resample.sh $labelname $atlas $templatename $subject"
+                    echo "mb_resample.sh $labelname $atlas $template $subject"
                 fi
             done
         done
