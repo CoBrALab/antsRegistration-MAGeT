@@ -1,162 +1,209 @@
-#!/bin/bash
-set -euo pipefail
-IFS=$'\n\t'
+#!/usr/bin/env bash
+. header.sh
+
 
 export LC_ALL=C
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
 datetime=$(date -u +%F-%R:%S)
 
-if [[ ! (-e input/atlas && -e input/template && -e input/subject )]]
+command=${1:-}
+
+if [[ ${command} == "init" ]]
 then
-    echo "Error, input directories not found"
-    exit 1
+  info "Creating input/atlas input/template input/subject"
+  mkdir -p input/atlas input/template input/subject input/model
+  exit 0
+elif [[ ! (-e input/atlas && -e input/template && -e input/subject )]]
+then
+  error "Error, input directories not found, run mb.sh -- init" && exit 1
 fi
 
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
 atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
 templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
-subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
-if [[ -e input/models ]]
+
+if [[ ! -z "${arg_s:-}" ]]
 then
-    models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
+  subjects=${arg_s}
+  info "Single subject specified ${subjects}"
 else
-    models=''
+  subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
 fi
 
+models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' 2> /dev/null || true)
+
+
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
-labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/input.*label/label/g')
+labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/input.*label/label/g' || true)
+
+#Sanity Check on inputs
+if [[ $(echo ${atlases} | wc -w) == 0 ]]
+then
+  error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]"
+  exit 1
+fi
+
+if [[ $(echo $(templates) | wc -w) == 0 ]]
+then
+  error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]"
+  exit 1
+fi
+
+if [[ $(echo ${subjects} | wc -w) == 0 ]]
+then
+  error "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz]"
+  exit 1
+fi
+
+if [[ $(echo $(echo $(atlases) | wc -w) \% 2) == 0 ]]
+then
+  warning "Even number of atlases detected, use an odd number to avoid tie label votes"
+fi
+
+if [[ $(echo $(echo $(templates) | wc -w) \% 2) == 0 ]]
+then
+  warning "Even number of templates detected, use an odd number to avoid tie label votes"
+fi
 
 #Alternative registration commands can be specified
 #Must accept $movingfile $fixedfile $outputprefix
-regcommand="mb_register.sh"
+regcommand=${arg_r}
 
 #Create directories
+debug "Creating output directories"
+debug "  output/transforms/atlas-template"
+debug "  output/transforms/template-subject"
+debug "  output/labels/candidates"
+debug "  output/labels/majorityvote"
 mkdir -p output/transforms/atlas-template
 mkdir -p output/transforms/template-subject
 mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
+for subject in ${subjects}
+do
+  debug "Creating output/labels/candidates/$(basename ${subject}) output/transforms/template-subject/$(basename ${subject})"
+  mkdir -p output/labels/candidates/$(basename ${subject})
+  mkdir -p output/transforms/template-subject/$(basename ${subject})
+done
+
+for template in ${templates}
+do
+  debug "Creating output/transforms/atlas-template/$(basename ${template})"
+  mkdir -p output/transforms/atlas-template/$(basename ${template})
+done
 
 #Status printout
-echo "Found $(echo $atlases | wc -w) atlases in input/atlas"
-echo "Found $(echo $labels | wc -w) labels in  input/atlas"
-echo "Found $(echo $templates | wc -w) templates in input/template"
-echo "Found $(echo $subjects | wc -w) subjects in input/subject"
-echo "Found $(echo $models | wc -w) models in input/models"
+info "Found:"
+info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
+info "  $(echo ${labels} | wc -w) labels in input/atlas"
+info "  $(echo ${templates} | wc -w) templates in input/template"
+info "  $(echo ${subjects} | wc -w) subjects in input/subject"
+info "  $(echo ${models} | wc -w) models in input/models"
 
-echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -w) \* $(echo $labels | wc -w)) labels completed"
+info "Progress:"
+info "  $(find output/transforms/atlas-template -name '*0_GenericAffine.xfm' | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w)) atlas-template registrations completed"
+info "  $(find output/transforms/template-subject -name '*0_GenericAffine.xfm' | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w)) template-subject registrations completed"
+info "  $(find output/labels/candidates -type f | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w) \* $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w) ) resample labels completed"
+info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w)) voted labels completed"
 
-arg1=${1:-}
-if [[ "$arg1" == "status" ]]
-then
-    echo Status only requested, terminating
-    exit 0
-fi
+#Exit if status exists in command list, doesn't matter if other commands were listed
+[[ "$@" =~ "status" ]] && exit 0
 
 echo "Checking dimensions of first atlas"
-SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) 1 | tr 'x' '\n') )
+SIZE=( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | tr 'x' '\n') )
 for dim in ${SIZE[@]}
 do
-    if [[ $(echo "$dim < 1.0" | bc) -eq 1 ]]
-    then
-      echo "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes"
-      hires="--highmem"
-      break
-    else
-      hires=''
-    fi
+  if [[ $(echo "$dim < 1.0" | bc) -eq 1 ]]
+  then
+    notice "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes on SciNet"
+    hires="--highmem"
+    break
+  else
+    hires=''
+  fi
 done
-
-#Directory Setup
-for subject in $subjects
-do
-    mkdir -p output/labels/candidates/$(basename $subject)
-    mkdir -p output/transforms/template-subject/$(basename $subject)
-done
-
-for template in $templates
-do
-    mkdir -p output/transforms/atlas-template/$(basename $template)
-done
-
 
 #Atlas to template registration
-echo "Computing Atlas to Template Registrations"
-for template in $templates
+info "Computing Atlas to Template Registrations"
+for template in ${templates}
 do
-  templatename=$(basename $template)
-    for atlas in $atlases
-    do
-        atlasname=$(basename $atlas)
-        if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
-        then
-            echo $regcommand $atlas $template output/transforms/atlas-template/${templatename}
-        fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
+  templatename=$(basename ${template})
+  for atlas in ${atlases}
+  do
+    atlasname=$(basename ${atlas})
+    if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
+    then
+      debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
+      echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
+    fi
+  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
 done
 
 #Template to subject registration
-echo "Computing Template to Subject Registrations"
-for subject in $subjects
+info "Computing Template to Subject Registrations"
+for subject in ${subjects}
 do
-    subjectname=$(basename $subject)
-    for template in $templates
-    do
-        templatename=$(basename $template)
-        #If subject and template name are the same, skip the registration step since it should be identity
-        if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
-        then
-            echo $regcommand $template $subject output/transforms/template-subject/${subjectname}
-        fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
+  subjectname=$(basename ${subject})
+  for template in ${templates}
+  do
+    templatename=$(basename ${template})
+    #If subject and template name are the same, skip the registration step since it should be identity
+    if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
+    then
+      debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
+      echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
+    fi
+  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
 done
 
 
 #Resample candidate labels
-echo "Computing Label Resamples"
-for subject in $subjects
+info "Computing Label Resamples"
+for subject in ${subjects}
 do
-    subjectname=$(basename $subject)
-    for template in $templates
+  subjectname=$(basename ${subject})
+  for template in ${templates}
+  do
+    templatename=$(basename ${template})
+    for atlas in ${atlases}
     do
-        templatename=$(basename $template)
-        for atlas in $atlases
-        do
-            atlasname=$(basename $atlas)
-            for label in $labels
-            do
-                labelname=$(basename $label)
-                if [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname ]]
-                then
-                    echo "mb_resample.sh $labelname $atlas $template $subject"
-                fi
-            done
-        done
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch -j 4 -c 1000 --afterok "${datetime}-mb_register_atlas_template*" --afterok "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
+      atlasname=$(basename ${atlas})
+      for label in ${labels}
+      do
+        labelname=$(basename ${label})
+        if [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname} ]]
+        then
+          debug mb_resample.sh ${labelname} ${atlas} ${template} ${subject}
+          echo mb_resample.sh ${labelname} ${atlas} ${template} ${subject}
+        fi
+      done
+    done
+  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch ${dryrun} -j 4 -c 1000 --afterok "${datetime}-mb_register_atlas_template*" --afterok "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
 done
 
 #Voting
-for subject in $subjects
+for subject in ${subjects}
 do
-    subjectname=$(basename $subject)
-    for label in $labels
-    do
-        labelname=$(basename $label)
-        if [[ ! -s output/labels/majorityvote/${subjectname}_$label ]]
-        then
-            majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_$label MajorityVoting"
-            for atlas in $atlases
-            do
-                atlasname=$(basename $atlas)
-                for template in $templates
-                do
-                    templatename=$(basename $template)
-                    majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-$labelname"
-                done
-            done
-        echo """$majorityvotingcmd && \
-            ConvertImage 3 output/labels/majorityvote/${subjectname}_$label /tmp/${subjectname}_$label 1 && \
-            mv /tmp/${subjectname}_$label output/labels/majorityvote/${subjectname}_$label"""
-        fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch -j 2 -c 100 --afterok "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
+  subjectname=$(basename ${subject})
+  for label in ${labels}
+  do
+    labelname=$(basename ${label})
+    if [[ ! -s output/labels/majorityvote/${subjectname}_${label} ]]
+    then
+      majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_${label} MajorityVoting"
+      for atlas in ${atlases}
+      do
+        atlasname=$(basename ${atlas})
+        for template in ${templates}
+        do
+          templatename=$(basename ${template})
+          majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname}"
+        done
+      done
+      echo """$majorityvotingcmd && \
+      ConvertImage 3 output/labels/majorityvote/${subjectname}_${label} /tmp/${subjectname}_${label} 1 && \
+      mv /tmp/${subjectname}_${label} output/labels/majorityvote/${subjectname}_${label}"""
+    fi
+  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 100 --afterok "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
 done
