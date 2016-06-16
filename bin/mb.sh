@@ -1,5 +1,7 @@
-#!/bin/bash -e
-#Make the script stop immediately with errors
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
 export LC_ALL=C
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
@@ -17,7 +19,9 @@ templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii'
 subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
 if [[ -e input/models ]]
 then
-models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
+    models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
+else
+    models=''
 fi
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
@@ -42,14 +46,15 @@ echo "Found $(echo $models | wc -w) models in input/models"
 
 echo "$(ls output/labels/majorityvote | wc -l) of $(expr $(echo $subjects | wc -w) \* $(echo $labels | wc -w)) labels completed"
 
-if [[ -n $1 ]]
+arg1=${1:-}
+if [[ "$arg1" == "status" ]]
 then
     echo Status only requested, terminating
     exit 0
 fi
 
 echo "Checking dimensions of first atlas"
-SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) 1 | tr 'x' ' ') )
+SIZE=( $(PrintHeader $(echo $atlases | cut -d " " -f 1) 1 | tr 'x' '\n') )
 for dim in ${SIZE[@]}
 do
     if [[ $(echo "$dim < 1.0" | bc) -eq 1 ]]
@@ -57,6 +62,8 @@ do
       echo "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes"
       hires="--highmem"
       break
+    else
+      hires=''
     fi
 done
 
