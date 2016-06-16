@@ -28,14 +28,10 @@ labels=$(ls $(echo $atlases | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's/i
 regcommand="mb_register.sh"
 
 #Create directories
-mkdir -p .scripts
 mkdir -p output/transforms/atlas-template
 mkdir -p output/transforms/template-subject
 mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
-mkdir -p logs
-#mkdir -p output/labels/STAPLE
-#mkdir -p output/labels/jointfusion
 
 #Status printout
 echo "Found $(echo $atlases | wc -w) atlases in input/atlas"
