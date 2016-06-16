@@ -44,7 +44,7 @@ then
   exit 1
 fi
 
-if [[ $(echo $(templates) | wc -w) == 0 ]]
+if [[ $(echo ${templates} | wc -w) == 0 ]]
 then
   error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]"
   exit 1
@@ -56,12 +56,12 @@ then
   exit 1
 fi
 
-if [[ $(echo $(echo $(atlases) | wc -w) \% 2) == 0 ]]
+if [[ $(echo $(echo ${atlases} | wc -w) \% 2) == 0 ]]
 then
   warning "Even number of atlases detected, use an odd number to avoid tie label votes"
 fi
 
-if [[ $(echo $(echo $(templates) | wc -w) \% 2) == 0 ]]
+if [[ $(echo $(echo ${templates} | wc -w) \% 2) == 0 ]]
 then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
