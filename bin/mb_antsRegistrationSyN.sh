@@ -1,11 +1,13 @@
 #!/bin/bash
 #Registration method based on the defaults of the antsRegistrationSyN.sh script from the main distro
+set -euo pipefail
+IFS=$'\n\t'
 
 movingfile=$1
 fixedfile=$2
 outputdir=$3
 
-antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
+antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 ${MB_VERBOSE:-} --minc \
   --output [$outputdir/$(basename $movingfile)-$(basename $fixedfile)] \
   --winsorize-image-intensities [0.005,0.995] --use-histogram-matching 0 \
   --initial-moving-transform [$fixedfile,$movingfile,1] \

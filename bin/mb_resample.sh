@@ -24,7 +24,7 @@ fi
 #Check for subjectname == $templatename, if so, we skipped that registration, so don't apply those transforms
 if [[ ${subjectname} = ${templatename} ]]
 then
-antsApplyTransforms -d 3 --verbose --interpolation GenericLabel -r ${subject} \
+antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
     -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${labelname}/g") \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
     ${morphosubjecttransform} \
@@ -32,7 +32,7 @@ antsApplyTransforms -d 3 --verbose --interpolation GenericLabel -r ${subject} \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm
 else
 #Transforms are applied like matrix algebra, last transform on the command line is applied first
-antsApplyTransforms -d 3 --verbose --interpolation GenericLabel -r ${subject} \
+antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
     -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${labelname}/g") \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-$labelname \
     ${morphosubjecttransform} \

@@ -4,14 +4,16 @@
 # - brain masked registrations (yet to confirm is this is better than non-brain masked)
 # - ROI based registration, some evidence that this is better than the default registration in the cerebellum, ROI should still be generous
 #Warning: if you do ROI based registration, all labels outside the ROI will be invalid!
+set -euo pipefail
+IFS=$'\n\t'
 
 movingfile=$1
 fixedfile=$2
 outputdir=$3
-movingmask=$(echo $movingfile | sed -e 's/t1\./mask./g' | grep mask)
-fixedmask=$(echo $fixedfile | sed  -e 's/t1\./mask./g' | grep mask)
+movingmask=$(echo $movingfile | sed -e 's/t1\./mask./g' | grep mask || true)
+fixedmask=$(echo $fixedfile | sed  -e 's/t1\./mask./g' | grep mask || true)
 
-antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
+antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 ${MB_VERBOSE:-} --minc \
   --output [$outputdir/$(basename $movingfile)-$(basename $fixedfile)] \
   --winsorize-image-intensities [0.01,0.99] --use-histogram-matching 1 \
   --initial-moving-transform [$fixedfile,$movingfile,1] \
