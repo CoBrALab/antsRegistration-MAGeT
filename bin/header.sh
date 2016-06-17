@@ -58,8 +58,8 @@ read -r -d '' usage <<-'EOF' || true # exits non-zero when EOF encountered
   -h --help              This help page
   -n --dry-run           Don't submit any jobs
   -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
-  Commands are available after -- init, status, template, subject, resample, and vote
-  Which run the corresponding stages. Multiple commands will run multiple stages.
+  Commands are available after -- run, init, status, template, multiatlas, subject, resample, vote and cleanup
+  Multiple commands will run multiple stages. Order is not checked.
 EOF
 
 # Set magic variables for current file and its directory.

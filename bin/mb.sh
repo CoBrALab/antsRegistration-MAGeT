@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
-. header.sh
-
-
 export LC_ALL=C
+source header.sh
+source stages.sh
+
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
 datetime=$(date -u +%F-%R:%S)
 
-command=${1:-}
-
-if [[ ${command} == "init" ]]
+if [[ "$@" =~ "init" ]]
 then
-  info "Creating input/atlas input/template input/subject"
-  mkdir -p input/atlas input/template input/subject input/model
+  stage_init
   exit 0
 elif [[ ! (-e input/atlas && -e input/template && -e input/subject )]]
 then
@@ -40,20 +37,17 @@ labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed 's/t1/label\*/g') | sed 's
 #Sanity Check on inputs
 if [[ $(echo ${atlases} | wc -w) == 0 ]]
 then
-  error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]"
-  exit 1
+  error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
 if [[ $(echo ${templates} | wc -w) == 0 ]]
 then
-  error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]"
-  exit 1
+  error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
 if [[ $(echo ${subjects} | wc -w) == 0 ]]
 then
-  error "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz]"
-  exit 1
+  error "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
 if [[ $(echo $(echo ${atlases} | wc -w) \% 2) == 0 ]]
@@ -114,7 +108,7 @@ echo "Checking dimensions of first atlas"
 SIZE=( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | tr 'x' '\n') )
 for dim in ${SIZE[@]}
 do
-  if [[ $(echo "$dim < 1.0" | bc) -eq 1 ]]
+  if [[ $(echo "$dim < 1.0" | bc) == 1 ]]
   then
     notice "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes on SciNet"
     hires="--highmem"
@@ -124,86 +118,30 @@ do
   fi
 done
 
-#Atlas to template registration
-info "Computing Atlas to Template Registrations"
-for template in ${templates}
+for stage in "$@"
 do
-  templatename=$(basename ${template})
-  for atlas in ${atlases}
-  do
-    atlasname=$(basename ${atlas})
-    if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
-    then
-      debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
-      echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
-    fi
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
-done
-
-#Template to subject registration
-info "Computing Template to Subject Registrations"
-for subject in ${subjects}
-do
-  subjectname=$(basename ${subject})
-  for template in ${templates}
-  do
-    templatename=$(basename ${template})
-    #If subject and template name are the same, skip the registration step since it should be identity
-    if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
-    then
-      debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
-      echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
-    fi
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 10 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
-done
-
-
-#Resample candidate labels
-info "Computing Label Resamples"
-for subject in ${subjects}
-do
-  subjectname=$(basename ${subject})
-  for template in ${templates}
-  do
-    templatename=$(basename ${template})
-    for atlas in ${atlases}
-    do
-      atlasname=$(basename ${atlas})
-      for label in ${labels}
-      do
-        labelname=$(basename ${label})
-        if [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname} ]]
-        then
-          debug mb_resample.sh ${labelname} ${atlas} ${template} ${subject}
-          echo mb_resample.sh ${labelname} ${atlas} ${template} ${subject}
-        fi
-      done
-    done
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=3 qbatch ${dryrun} -j 4 -c 1000 --afterok "${datetime}-mb_register_atlas_template*" --afterok "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
-done
-
-#Voting
-for subject in ${subjects}
-do
-  subjectname=$(basename ${subject})
-  for label in ${labels}
-  do
-    labelname=$(basename ${label})
-    if [[ ! -s output/labels/majorityvote/${subjectname}_${label} ]]
-    then
-      majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_${label} MajorityVoting"
-      for atlas in ${atlases}
-      do
-        atlasname=$(basename ${atlas})
-        for template in ${templates}
-        do
-          templatename=$(basename ${template})
-          majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname}"
-        done
-      done
-      echo """$majorityvotingcmd && \
-      ConvertImage 3 output/labels/majorityvote/${subjectname}_${label} /tmp/${subjectname}_${label} 1 && \
-      mv /tmp/${subjectname}_${label} output/labels/majorityvote/${subjectname}_${label}"""
-    fi
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 100 --afterok "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
+  case ${stage} in
+    template | multiatlas | run)
+      stage_register_atlas_template
+      ;;&
+    multiatlas)
+      stage_multiatlas
+      exit 0
+    subject | run)
+      stage_register_template_subject
+      ;;&
+    resample | run)
+      stage_resample
+      ;;&
+    vote | run)
+      stage_vote
+      exit 0
+      ;;
+    cleanup)
+      stage_cleanup
+      exit 0
+      ;;
+    *)
+      error "Stage not recognized" && help
+  esac
 done
