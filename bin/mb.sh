@@ -7,7 +7,15 @@ source stages.sh
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
 datetime=$(date -u +%F-%R:%S)
 
-if [[ "$@" =~ "init" ]]
+#If the commandlist is empty, assume the command is "run"
+if [[ $# < 1 ]]
+then
+    commandlist="run"
+else
+    commandlist="$@"
+fi
+
+if [[ $commandlist =~ "init" ]]
 then
   stage_init
   exit 0
@@ -102,7 +110,7 @@ info "  $(find output/labels/candidates -type f | wc -l) of $(expr $(echo ${atla
 info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w)) voted labels completed"
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
-[[ "$@" =~ "status" ]] && exit 0
+[[ $commandlist =~ "status" ]] && exit 0
 
 echo "Checking dimensions of first atlas"
 SIZE=( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | tr 'x' '\n') )
@@ -118,7 +126,7 @@ do
   fi
 done
 
-for stage in "$@"
+for stage in $commandlist
 do
   case ${stage} in
     template|multiatlas|run)
