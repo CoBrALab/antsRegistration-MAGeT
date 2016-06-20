@@ -142,6 +142,9 @@ do
       stage_cleanup
       exit 0
       ;;
+    template|multiatlas|subject|resample|vote|cleanup|run)
+      #Catch the fall-through of case matching before erroring
+      ;;
     *)
       error "Stage not recognized" && help
   esac
