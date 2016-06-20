@@ -15,17 +15,19 @@
 #
 # Authors:
 #
-#  - Kevin van Zonneveld (http://kvz.io)
-#  - Izaak Beekman (https://izaakbeekman.com/)
-#  - Alexander Rathai (Alexander.Rathai@gmail.com)
-#  - Dr. Damian Rouson (http://www.sourceryinstitute.org/) (documentation)
+# - [Kevin van Zonneveld](http://kvz.io)
+# - [Izaak Beekman](https://izaakbeekman.com/)
+# - [Alexander Rathai](mailto:<Alexander.Rathai@gmail.com>)
+# - [Dr. Damian Rouson](http://www.sourceryinstitute.org/) (documentation)
 #
 # Usage:
 #
 #  LOG_LEVEL=7 ./main.sh -f /tmp/x -d
 #
-# Licensed under MIT
-# Copyright (c) 2013 Kevin van Zonneveld (http://kvz.io)
+# Copyright (c) 2013 Kevin van Zonneveld (http://kvz.io) and contributors
+# Licensed under MIT: https://raw.githubusercontent.com/kvz/bash3boilerplate/master/LICENSE
+# You are not obligated to ship the license file with your b3bp projects as long
+# as you leave the above comments intact.
 
 
 ### Configuration
