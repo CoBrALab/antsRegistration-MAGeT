@@ -54,11 +54,11 @@ NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
 #   need not have a long option
 # - `--` is respected as the separator between options and arguments
 read -r -d '' usage <<-'EOF' || true # exits non-zero when EOF encountered
-  -s --subject     [arg] Filename to process.
-  -v                     Enable verbose mode for all scripts
+  -s --subject     [arg] Specific subjects to process.
+  -v                     Enable verbose mode for all scripts.
   -d --debug             Enables debug mode.
-  -h --help              This help page
-  -n --dry-run           Don't submit any jobs
+  -h --help              This help page.
+  -n --dry-run           Don't submit any jobs.
   -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
   Commands are available after -- run, init, status, template, multiatlas, subject, resample, vote and cleanup
   Multiple commands will run multiple stages. Order is not checked.
