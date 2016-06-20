@@ -121,19 +121,20 @@ done
 for stage in "$@"
 do
   case ${stage} in
-    template | multiatlas | run)
+    template|multiatlas|run)
       stage_register_atlas_template
       ;;&
     multiatlas)
       stage_multiatlas
       exit 0
-    subject | run)
+      ;;
+    subject|run)
       stage_register_template_subject
       ;;&
-    resample | run)
+    resample|run)
       stage_resample
       ;;&
-    vote | run)
+    vote|run)
       stage_vote
       exit 0
       ;;
