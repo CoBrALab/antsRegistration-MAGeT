@@ -132,8 +132,11 @@ do
     template|multiatlas|run)
       stage_register_atlas_template
       ;;&
-    multiatlas)
-      stage_multiatlas
+    multiatlas|multiatlas-resample)
+      stage_multiatlas_resample
+      ;;&
+    multiatlas|multiatlas-vote)
+      stage_multiatlas_vote
       exit 0
       ;;
     subject|run)
@@ -150,7 +153,7 @@ do
       stage_cleanup
       exit 0
       ;;
-    template|multiatlas|subject|resample|vote|cleanup|run)
+    template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
       #Catch the fall-through of case matching before erroring
       ;;
     *)

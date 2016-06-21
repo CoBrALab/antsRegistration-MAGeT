@@ -23,7 +23,7 @@ stage_register_atlas_template () {
   done
 }
 
-stage_multiatlas () {
+stage_multiatlas_resample () {
   debug "Setting up Multiatlas/Template Output Directories"
   mkdir -p output/multiatlas/labels/candidates
   mkdir -p output/multiatlas/labels/majorityvote
@@ -31,7 +31,6 @@ stage_multiatlas () {
   do
     mkdir -p output/multiatlas/labels/candidates/$(basename ${template})
   done
-  #Resample candidate labels
   info "Computing Multiatlas/Template Label Resamples"
   for template in ${templates}
   do
@@ -50,8 +49,9 @@ stage_multiatlas () {
       done
     done
   done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2 qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --jobname ${datetime}-mb-multiatlas_resample --walltime 4:00:00 -
+}
 
-  #Voting
+stage_multiatlas_vote () {
   info "Computing Multiatlas/Template Votes"
   for template in ${templates}
   do
