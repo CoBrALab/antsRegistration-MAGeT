@@ -74,7 +74,7 @@ function help () {
   echo "" 1>&2
   echo "  ${__usage:-No usage available}" 1>&2
   echo "" 1>&2
-  echo " ${__helptext:-}" 1>&2
+  echo "  ${__helptext:-}" 1>&2
   echo "" 1>&2
   exit 1
 }
@@ -96,15 +96,22 @@ trap cleanup_before_exit EXIT
 # - We do not bash-expand defaults, so setting '~/app' as a default will not resolve to ${HOME}.
 #   you can use bash variables to work around this (so use ${HOME} instead)
 read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
-  -s --subject     [arg] Specific subjects to process.
-  -v                     Enable verbose mode for all scripts.
+  -s --subject     [arg] Specific subject files to process.
+  -v --verbose           Enable verbose mode for all scripts.
   -d --debug             Enables debug mode.
   -h --help              This help page.
   -n --dry-run           Don't submit any jobs.
   -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
 EOF
 read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
-  Commands are available after -- run, init, status, template, multiatlas, subject, resample, vote and cleanup
+  MAGeTBrain implementation using ANTs
+  Supports MINC and NIFTI input files (ANTs must be built with MINC support)
+
+  Invocation: mb.sh [options] -- [stage 1] [stage 2] ... [stage N]
+
+  Standard stages: template, subject, resample, vote, run (template, subject, resample, vote)
+  Multiatlas stages: multiatlas-resample, multiatlas-vote, multiatlas (template, multiatlas-resample, multiatlas-vote)
+  Other stages: init, status, cleanup
   Multiple commands will run multiple stages. Order is not checked.
 EOF
 
