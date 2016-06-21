@@ -112,7 +112,7 @@ info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${subjects} | 
 #Exit if status exists in command list, doesn't matter if other commands were listed
 [[ $commandlist =~ "status" ]] && exit 0
 
-echo "Checking dimensions of first atlas"
+info "Checking dimensions of first atlas"
 SIZE=( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | tr 'x' '\n') )
 for dim in ${SIZE[@]}
 do

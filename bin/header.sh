@@ -1,72 +1,29 @@
 #!/usr/bin/env bash
-# BASH3 Boilerplate
-#
 # This file:
 #
-#  - Is a template to write better bash scripts
-#  - Is delete-key friendly, in case you don't need e.g. command line option parsing
-#
-# More info:
-#
-#  - https://github.com/kvz/bash3boilerplate
-#  - http://kvz.io/blog/2013/02/26/introducing-bash3boilerplate/
-#
-# Version: 2.0.0
-#
-# Authors:
-#
-# - [Kevin van Zonneveld](http://kvz.io)
-# - [Izaak Beekman](https://izaakbeekman.com/)
-# - [Alexander Rathai](mailto:<Alexander.Rathai@gmail.com>)
-# - [Dr. Damian Rouson](http://www.sourceryinstitute.org/) (documentation)
+#  - Demos BASH3 Boilerplate (change this for your script)
 #
 # Usage:
 #
-#  LOG_LEVEL=7 ./main.sh -f /tmp/x -d
+#  LOG_LEVEL=7 ./main.sh -f /tmp/x -d (change this for your script)
 #
-# Copyright (c) 2013 Kevin van Zonneveld (http://kvz.io) and contributors
-# Licensed under MIT: https://raw.githubusercontent.com/kvz/bash3boilerplate/master/LICENSE
-# You are not obligated to ship the license file with your b3bp projects as long
-# as you leave the above comments intact.
-
-
-### Configuration
-#####################################################################
+# Based on a template by BASH3 Boilerplate v2.0.0
+# Copyright (c) 2013 Kevin van Zonneveld and contributors
+# http://bash3boilerplate.sh/#authors
 
 # Exit on error. Append ||true if you expect an error.
-# `set` is safer than relying on a shebang like `#!/bin/bash -e` because that is neutralized
-# when someone runs your script as `bash yourscript.sh`
 set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
 set -o nounset
 
-# Bash will remember & return the highest exitcode in a chain of pipes.
-# This way you can catch the error in case mysqldump fails in `mysqldump |gzip`
+# Catch the error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
 set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
 # set -o xtrace
 
-# Environment variables and their defaults
-LOG_LEVEL="${LOG_LEVEL:-6}" # 7 = debug -> 0 = emergency
-NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
-
-# Commandline options. This defines the usage page, and is used to parse cli
-# opts & defaults from. The parsing is unforgiving so be precise in your syntax
-# - A short option must be preset for every long option; but every short option
-#   need not have a long option
-# - `--` is respected as the separator between options and arguments
-read -r -d '' usage <<-'EOF' || true # exits non-zero when EOF encountered
-  -s --subject     [arg] Specific subjects to process.
-  -v                     Enable verbose mode for all scripts.
-  -d --debug             Enables debug mode.
-  -h --help              This help page.
-  -n --dry-run           Don't submit any jobs.
-  -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
-  Commands are available after -- run, init, status, template, multiatlas, subject, resample, vote and cleanup
-  Multiple commands will run multiple stages. Order is not checked.
-EOF
-
-# Set magic variables for current file and its directory.
-# BASH_SOURCE[0] is used so we can display the current file even if it is sourced by a parent script.
-# If you need the script that was executed, consider using $0 instead.
+# Set magic variables for current file, directory, os, etc.
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 __base="$(basename ${__file} .sh)"
@@ -75,8 +32,13 @@ if [[ "${OSTYPE:-}" == "darwin"* ]]; then
   __os="OSX"
 fi
 
+# Define the environment variables (and their defaults) that this script depends on
+LOG_LEVEL="${LOG_LEVEL:-6}" # 7 = debug -> 0 = emergency
+NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
+
+
 ### Functions
-#####################################################################
+##############################################################################
 
 function _fmt ()      {
   local color_debug="\x1b[35m"
@@ -110,7 +72,9 @@ function help () {
   echo "" 1>&2
   echo " ${@}" 1>&2
   echo "" 1>&2
-  echo "  ${usage}" 1>&2
+  echo "  ${__usage:-No usage available}" 1>&2
+  echo "" 1>&2
+  echo " ${__helptext:-}" 1>&2
   echo "" 1>&2
   exit 1
 }
@@ -122,7 +86,28 @@ trap cleanup_before_exit EXIT
 
 
 ### Parse commandline options
-#####################################################################
+##############################################################################
+
+# Commandline options. This defines the usage page, and is used to parse cli
+# opts & defaults from. The parsing is unforgiving so be precise in your syntax
+# - A short option must be preset for every long option; but every short option
+#   need not have a long option
+# - `--` is respected as the separator between options and arguments
+# - We do not bash-expand defaults, so setting '~/app' as a default will not resolve to ${HOME}.
+#   you can use bash variables to work around this (so use ${HOME} instead)
+read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
+  -s --subject     [arg] Specific subjects to process.
+  -v                     Enable verbose mode for all scripts.
+  -d --debug             Enables debug mode.
+  -h --help              This help page.
+  -n --dry-run           Don't submit any jobs.
+  -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
+EOF
+read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
+  Commands are available after -- run, init, status, template, multiatlas, subject, resample, vote and cleanup
+  Multiple commands will run multiple stages. Order is not checked.
+EOF
+
 
 # Translate usage string -> getopts arguments, and set $arg_<flag> defaults
 while read line; do
@@ -156,7 +141,7 @@ while read line; do
     match="$(echo "${line}" |sed 's#^.*Default=\(\)#\1#g')"
     eval "${varname}=\"${match}\""
   fi
-done <<< "${usage}"
+done <<< "${__usage}"
 
 # Allow long options like --this
 opts="${opts}-:"
@@ -210,8 +195,8 @@ shift $((OPTIND-1))
 [ "${1:-}" = "--" ] && shift
 
 
-### Switches (like -d for debugmode, -h for showing helppage)
-#####################################################################
+### Command-line argument switches (like -d for debugmode, -h for showing helppage)
+##############################################################################
 
 # debug mode
 if [ "${arg_d}" = "1" ]; then
@@ -229,7 +214,6 @@ fi
 
 # dry-run mode
 if [ "${arg_n}" = "1" ]; then
-  #set -o verbose
   dryrun='-n'
 else
   dryrun=''
@@ -240,8 +224,3 @@ if [ "${arg_h}" = "1" ]; then
   # Help exists with code 1
   help "Help using ${0}"
 fi
-
-
-### Validation (decide what's required for running your script and error out)
-#####################################################################
-#[ -z "${LOG_LEVEL:-}" ] && emergency "Cannot continue without LOG_LEVEL. "
