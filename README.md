@@ -100,6 +100,60 @@ contrast types but may require tweaking of time/memory estimates.
 # For options and individual stage control, see mb.sh --help
 ```
 
+## MAGeTbrain Stages
+
+MAGeTBrain runs in a number of stages, some of which can run in parallel and
+others which must run after prior stages are completed. In addition, this
+pipeline describes a number of utility stages for assisting in running
+MAGeTbrain. All of these stages can be run by invoking them after ``--`` in
+your ``mb.sh`` call.
+
+### Utility stages
+- ``init`` - setup the input directory structure for MAGeTbrain
+- ``status`` - display the status check counting work completed and work to
+be done and exit
+- ``cleanup`` - create and submit a job to tar, compress and cleanup all
+intermediate files, for use after a successful run
+
+### Standard stages
+- ``template`` - register atlases to templates
+- ``subject`` - register templates to subjects
+- ``resample`` - transform candidate label files through atlas-template-subject
+chain. Depends on completion of ``template`` and ``subject`` stages
+- ``vote`` - perform majority vote label fusion on candidate labels
+- ``run`` - calculate and submit all standard stages
+
+Stages manually specified on the command line do not check if their antecedent
+stages have completed successfully, this can result in undefined behavior.
+If you specify stages manually, please ensure that antecedent stages are
+complete.
+
+Commands in a given stage in MAGeTbrain are deemed complete if their output
+files exist, this means that if a pipeline was stopped at some point, it can
+resume by examining the existing files. If input files are changed be careful
+to cleanup old intermediate files.
+
+### Multi-atlas stages
+
+Multi-atlas mode in MAGeTbrain disables the "template" concept, resulting in
+operation like a classic multi-atlas segmentation tool.
+All subjects are ignored for this mode, instead templates are treated as
+subjects.
+
+- ``multiatlas-resample`` - transform candidate label files through
+atlas-template chain, treating templates as if they were subjects. Depends upon
+completion of ``template`` stage
+- ``multiatlas-vote`` - perform majority vote label fusion on template candidate
+labels
+- ``multiatlas`` - perform ``template``, ``multiatlas-resample`` and
+``multiatlas-vote`` stages
+
+Typical use of this mode is for verification vs MAGeTbrain mode and for manual
+"best" template selection. For template selection, include all your subjects as
+templates, run multiatlas mode, then QC the resulting labels. Choose the best
+quality labels from the template pool and use those subjects as your templates.
+Run MAGeTbrain as normal from there.
+
 ## How to install/configure MAGeTbrain to run elsewhere
 
 MAGeTbrain was designed and tested to run on Compute Canada's SciNet
