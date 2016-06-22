@@ -60,7 +60,7 @@ It has been very successfully used on higher resolution data and on other
 contrast types but may require tweaking of time/memory estimates.
 
 
-## How run antsRegistration-MAGeT on SciNet
+## How to run antsRegistration-MAGeT on SciNet
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
@@ -186,7 +186,7 @@ input/
     atlas/
         atlas1_t1.ext - mandatory MRI volume
         [ atlas1_[t2, pd, fa, md].ext ] - co-registered to t1
-        atlas1_label_name.ext - mandatory label file
+        atlas1_label_name.ext - mandatory label file, basename must match t1
         [ atlas1_label_name2.ext ] - additional labels
         [ atlas1_label_nameN.ext ] - arbitrary numbers of labels
         [ atlas1_mask.ext ] - mask used to focus registration
