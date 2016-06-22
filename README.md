@@ -5,6 +5,8 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 [antsRegistration](https://github.com/stnava/ANTs) and the
 [qbatch](https://github.com/pipitone/qbatch) generic cluster submission system.
 
+![Multi-atlas and MAGeT brain operation schematic](doc/MA-MAGeTBrain-Schematic.png "Schematic")
+
 ## Requirements
 - [bash](https://www.gnu.org/software/bash) version 3.0 or later
 - [python](https://www.python.org) version 2.7.x or later
