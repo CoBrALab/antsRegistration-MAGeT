@@ -58,12 +58,12 @@ then
   error "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
-if [[ $(echo $(echo ${atlases} | wc -w) \% 2) == 0 ]]
+if [[ $(( $(echo ${atlases} | wc -w) % 2 )) == 0 ]]
 then
   warning "Even number of atlases detected, use an odd number to avoid tie label votes"
 fi
 
-if [[ $(echo $(echo ${templates} | wc -w) \% 2) == 0 ]]
+if [[ $(( $(echo ${templates} | wc -w) % 2 )) == 0 ]]
 then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
