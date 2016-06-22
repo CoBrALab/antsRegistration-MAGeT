@@ -64,7 +64,7 @@ contrast types but may require tweaking of time/memory estimates.
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
-> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 ANTs/git qbatch/git
+> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 ANTs/git qbatch/git gnu-parallel/20150822
 > source antsRegistration-MAGeT/bin/activate
 > cd /path/to/my/working/Directory
 > mb.sh -- init
@@ -150,7 +150,7 @@ labels
 
 Typical use of this mode is for verification vs MAGeTbrain mode and for manual
 "best" template selection. For template selection, include all your subjects as
-templates, run multiatlas mode, then QC the resulting labels. Choose the best
+templates, run ``multiatlas`` mode, then QC the resulting labels. Choose the best
 quality labels from the template pool and use those subjects as your templates.
 Run MAGeTbrain as normal from there.
 
