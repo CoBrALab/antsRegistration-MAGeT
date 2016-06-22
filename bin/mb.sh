@@ -25,18 +25,18 @@ then
 fi
 
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
-atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
-templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
+atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr')
+templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr')
 
 if [[ ! -z "${arg_s:-}" ]]
 then
   subjects=${arg_s}
   info "Single subject specified ${subjects}"
 else
-  subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz')
+  subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr')
 fi
 
-models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' 2> /dev/null || true)
+models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' 2> /dev/null || true)
 
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
@@ -66,6 +66,40 @@ fi
 if [[ $(echo $(echo ${templates} | wc -w) \% 2) == 0 ]]
 then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
+fi
+
+#Sanity check on Analyze files, check that a matching img file exists
+if [[ ${atlases} =~ "hdr" ]]
+then
+  for atlas in ${atlases}
+  do
+    if [[ ! -s input/atlas/$(basename ${atlas} .hdr).img ]]
+    then
+      error "atlas ${atlas} is missing corresponding input/atlas/$(basename ${atlas} .hdr).img file"
+    fi
+  done
+fi
+
+if [[ ${templates} =~ "hdr" ]]
+then
+  for template in ${templates}
+  do
+    if [[ ! -s input/template/$(basename ${template} .hdr).img ]]
+    then
+      error "template ${template} is missing corresponding input/template/$(basename ${template} .hdr).img file"
+    fi
+  done
+fi
+
+if [[ ${subjects} =~ "hdr" ]]
+then
+  for subject in ${subjects}
+  do
+    if [[ ! -s input/subject/$(basename ${subject} .hdr).img ]]
+    then
+      error "subject ${subject} is missing corresponding input/subject/$(basename ${subject} .hdr).img file"
+    fi
+  done
 fi
 
 #Alternative registration commands can be specified
