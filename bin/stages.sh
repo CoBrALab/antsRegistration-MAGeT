@@ -19,7 +19,7 @@ stage_register_atlas_template () {
         debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
         echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=5 qbatch ${dryrun} -j 2 -c 4 ${hires} --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} -j 1 -c 2 --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
   done
 }
 
