@@ -139,14 +139,14 @@ info "  $(echo ${subjects} | wc -w) subjects in input/subject"
 info "  $(echo ${models} | wc -w) models in input/models"
 
 info "Progress:"
-info "  $(find output/transforms/atlas-template -name '*0_GenericAffine.xfm' | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w)) atlas-template registrations completed"
-info "  $(find output/transforms/template-subject -name '*0_GenericAffine.xfm' | wc -l) of $(expr $(echo ${templates} | wc -w) \* $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w)) template-subject registrations completed"
-info "  $(find output/labels/candidates -type f | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w) \* $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w) ) resample labels completed"
-info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w)) voted labels completed"
+info "  $(find output/transforms/atlas-template -name '*0_GenericAffine.xfm' | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) )) atlas-template registrations completed"
+info "  $(find output/transforms/template-subject -name '*0_GenericAffine.xfm' | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w) )) template-subject registrations completed"
+info "  $(find output/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) resample labels completed"
+info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) voted labels completed"
 if [[ -d output/multiatlas ]]
 then
-  info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w) \* $(echo ${labels} | wc -w) ) multiatlas resample labels completed"
-  info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${templates} | wc -w) \* $(echo ${labels} | wc -w)) multiatlas voted labels completed"
+  info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
+  info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
 fi
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
