@@ -8,12 +8,15 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 ![Multi-atlas and MAGeT brain operation schematic](doc/MA-MAGeTBrain-Schematic.png "Schematic")
 
 ## Requirements
-- [bash](https://www.gnu.org/software/bash) version 3.0 or later
-- [python](https://www.python.org) version 2.7.x or later
-- [qbatch](https://github.com/pipitone/qbatch) version 1.1 or later
-- [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT
-     - or
-- [minc-toolkit-v2](https://bic-mni.github.io) version 1.9.11 or later
+
+-   [bash](https://www.gnu.org/software/bash) version 3.0 or later
+
+-   [python](https://www.python.org) version 2.7.x or later
+
+-   [qbatch](https://github.com/pipitone/qbatch) version 1.1 or later
+
+-   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT or
+[minc-toolkit-v2](https://bic-mni.github.io) version 1.9.11 or later
 
 MAGeTbrain is very computationally expensive, performing
 ``atlases*templates + templates*subjects`` linear and non-linear registrations.
@@ -36,7 +39,7 @@ majority vote scheme.
 ## Best practices
 
 MAGeTbrain accepts any expertly segmented MRI volume/label pairs as atlas
-inputs (such as those available at http://cobralab.ca/atlases/ for the
+inputs (such as those available at <http://cobralab.ca/atlases/> for the
 hippocampus, subcortical and cerebellar structures) or you may
 provide your own for other structures. An odd number of atlases is strongly
 recommended to avoid tie votes during the label fusion process.
@@ -54,13 +57,12 @@ MAGeTbrain can skip registering identical images together.
 Typical application of MAGeTbrain is to preprocess input MRI volumes prior
 to starting to correct for bias fields and to crop excess non-head features.
 One such recommended pipeline based on the MINC tools is available at
-https://github.com/CobraLab/minc-bpipe-library. Subject input volumes
+<https://github.com/CobraLab/minc-bpipe-library>. Subject input volumes
 should be corrected but otherwise in native (or otherwise non volumetrically
 deformed) space, in order to ensure label volumes provide real-world measures.
 MAGeTbrain was tested and optimized on 1x1x1mm isotropic MPRAGE subject data.
 It has been very successfully used on higher resolution data and on other
 contrast types but may require tweaking of time/memory estimates.
-
 
 ## How to run antsRegistration-MAGeT on SciNet
 
@@ -111,19 +113,28 @@ MAGeTbrain. All of these stages can be run by invoking them after ``--`` in
 your ``mb.sh`` call.
 
 ### Utility stages
-- ``init`` - setup the input directory structure for MAGeTbrain
-- ``status`` - display the status check counting work completed and work to
+
+-   ``init`` - setup the input directory structure for MAGeTbrain
+
+-   ``status`` - display the status check counting work completed and work to
 be done and exit
-- ``cleanup`` - create and submit a job to tar, compress and delete all
+
+-   ``cleanup`` - create and submit a job to tar, compress and delete all
 intermediate files, for use after a successful run
 
 ### Standard stages
-- ``template`` - register atlases to templates
-- ``subject`` - register templates to subjects
-- ``resample`` - transform candidate label files through atlas-template-subject
-chain. Depends on completion of ``template`` and ``subject`` stages
-- ``vote`` - perform majority vote label fusion on candidate labels
-- ``run`` - calculate and submit all standard stages
+
+-   ``template`` - register atlases to templates
+
+-   ``subject`` - register templates to subjects
+
+-   ``resample`` - transform candidate label files through
+atlas-template-subject chain. Depends on completion of ``template`` and
+``subject`` stages
+
+-   ``vote`` - perform majority vote label fusion on candidate labels
+
+-   ``run`` - calculate and submit all standard stages
 
 Stages manually specified on the command line do not check if their antecedent
 stages have completed successfully, this can result in undefined behavior.
@@ -142,19 +153,21 @@ operation like a classic multi-atlas segmentation tool.
 All subjects are ignored for this mode, instead templates are treated as
 subjects.
 
-- ``multiatlas-resample`` - transform candidate label files through
+-   ``multiatlas-resample`` - transform candidate label files through
 atlas-template chain, treating templates as if they were subjects. Depends upon
 completion of ``template`` stage
-- ``multiatlas-vote`` - perform majority vote label fusion on template candidate
-labels
-- ``multiatlas`` - perform ``template``, ``multiatlas-resample`` and
+
+-   ``multiatlas-vote`` - perform majority vote label fusion on template
+candidate labels
+
+-   ``multiatlas`` - perform ``template``, ``multiatlas-resample`` and
 ``multiatlas-vote`` stages
 
 Typical use of this mode is for verification vs MAGeTbrain mode and for manual
 "best" template selection. For template selection, include all your subjects as
-templates, run ``multiatlas`` mode, then QC the resulting labels. Choose the best
-quality labels from the template pool and use those subjects as your templates.
-Run MAGeTbrain as normal from there.
+templates, run ``multiatlas`` mode, then QC the resulting labels. Choose the
+bestquality labels from the template pool and use those subjects as your
+templates. Run MAGeTbrain as normal from there.
 
 ## How to install/configure MAGeTbrain to run elsewhere
 
@@ -162,10 +175,10 @@ MAGeTbrain was designed and tested to run on Compute Canada's SciNet
 supercomputing cluster located in Toronto, Canada. The cluster consists of
 3000+ 8-CPU (16-core) compute nodes with 16 GB of RAM each. MAGeTbrain handles
 job creation and submission via the ``qbatch`` job creation tool supporting
-PBS, SGE and LSF(soon) clusters. ``qbatch`` is configured via a number of environment
-variables, see https://github.com/pipitone/qbatch. ``qbatch`` will split up
-MAGeTbrain jobs according to its configuration to honour walltime and memory
-specifications.
+PBS, SGE and LSF(soon) clusters. ``qbatch`` is configured via a number of
+environment variables, see <https://github.com/pipitone/qbatch>. ``qbatch``
+will split up MAGeTbrain jobs according to its configuration to honour
+walltime and memory specifications.
 
 To run MAGeTbrain locally, install ``qbatch`` and define
 ``QBATCH_SYSTEM="local"``, ``qbatch`` will run commands locally using GNU
@@ -207,7 +220,8 @@ input/
 
 ## Output File/Directory Structure
 
-The following describes the standard set of outputs for the input structure above
+The following describes the standard set of outputs for the input structure
+above
 
 ```sh
 output/
