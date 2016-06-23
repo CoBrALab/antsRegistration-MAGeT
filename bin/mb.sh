@@ -116,6 +116,7 @@ mkdir -p output/transforms/atlas-template
 mkdir -p output/transforms/template-subject
 mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
+
 for subject in ${subjects}
 do
   debug "Creating output/labels/candidates/$(basename ${subject}) output/transforms/template-subject/$(basename ${subject})"
@@ -142,6 +143,11 @@ info "  $(find output/transforms/atlas-template -name '*0_GenericAffine.xfm' | w
 info "  $(find output/transforms/template-subject -name '*0_GenericAffine.xfm' | wc -l) of $(expr $(echo ${templates} | wc -w) \* $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w)) template-subject registrations completed"
 info "  $(find output/labels/candidates -type f | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w) \* $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w) ) resample labels completed"
 info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${subjects} | wc -w) \* $(echo ${labels} | wc -w)) voted labels completed"
+if [[ -d output/multiatlas ]]
+then
+  info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(expr $(echo ${atlases} | wc -w) \* $(echo ${templates} | wc -w) \* $(echo ${labels} | wc -w) ) multiatlas resample labels completed"
+  info "  $(ls output/labels/majorityvote | wc -l) of $(expr $(echo ${templates} | wc -w) \* $(echo ${labels} | wc -w)) multiatlas voted labels completed"
+fi
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
 [[ $commandlist =~ "status" ]] && exit 0
