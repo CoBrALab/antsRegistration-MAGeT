@@ -114,7 +114,7 @@ your ``mb.sh`` call.
 - ``init`` - setup the input directory structure for MAGeTbrain
 - ``status`` - display the status check counting work completed and work to
 be done and exit
-- ``cleanup`` - create and submit a job to tar, compress and cleanup all
+- ``cleanup`` - create and submit a job to tar, compress and delete all
 intermediate files, for use after a successful run
 
 ### Standard stages
