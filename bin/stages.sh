@@ -8,11 +8,11 @@ stage_init () {
 stage_estimate () {
   #Function estimates the memory requirements for doing registrations based on
   #empircally fit equation memoryGB = a * exp(b/fixed) + d * exp(e/moving) + f
-  # a=1.10515
-  # b=1.53065
-  # d=0.36404
-  # e=0.98150
-  # f=-2.82957
+  # a=1.1051496
+  # b=1.5306549
+  # d=0.3640419
+  # e=0.9815018
+  # f=-2.8295687
   #This function only checks the resolution of the first atlas, template and
   #subject
   info "Checking Resolution of First Atlas"
@@ -27,15 +27,15 @@ stage_estimate () {
 
   notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
 
-  local atlas_template_memory=$(echo "1.10515 * e(1.53065 / ${template_res}) + 0.36404 * e(0.98150 / ${atlas_res}) - 2.82957" | bc -l)
-  local template_subject_memory=$(echo "1.10515 * e(1.53065 / ${subject_res}) + 0.36404 * e(0.98150 / ${template_res}) - 2.82957" | bc -l)
+  local atlas_template_memory=$(echo "1.1051496 * e(1.5306549 / ${template_res}) + 0.3640419 * e(0.9815018/ ${atlas_res}) - 2.8295687" | bc -l)
+  local template_subject_memory=$(echo "1.1051496 * e(1.5306549 / ${subject_res}) + 0.3640419 * e(0.9815018 / ${template_res}) - 2.8295687" | bc -l)
 
   #Estimate walltime from empircally fit equation: seconds = a * exp(b/fixed) + d
-  # a 2.063e+03
-  # b 1.350e+00
-  # d -3.830e+03
-  local atlas_template_walltime_seconds=$(echo "2.063e+03 * e(1.350e+00 / ${template_res}) - 3.830e+03" | bc -l)
-  local template_subject_walltime_seconds=$(echo "2.063e+03 * e(1.350e+00 / ${subject_res}) - 3.830e+03" | bc -l)
+  # a 2062.784050
+  # b 1.350187
+  # d -3830.182712
+  local atlas_template_walltime_seconds=$(echo "2062.784050 * e(1.350187 / ${template_res}) - 3830.182712" | bc -l | cut -d"." -f1)
+  local template_subject_walltime_seconds=$(echo "2062.784050 * e(1.350187 / ${subject_res}) - 3830.182712" | bc -l | cut -d"." -f1)
 
   #A little bit of special casing for SciNet, eventually need to figure out
   #rules for non-scinet systems
