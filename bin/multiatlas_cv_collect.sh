@@ -1,5 +1,6 @@
 #!/bin/bash
 #Script to generate csv file of LabelOverlapMeasures from a multiatlas n-fold run
+#Run with multiatlas_cv_collect.sh <output.csv> <optional matching pattern> <optional target dir>
 
 if [[ $3 ]]
 then
@@ -15,7 +16,6 @@ then
 fi
 
 output=$1
-
 echo "file,atlases,templates,fold,Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" > $output
 for dir in $targetdir/NFOLD_multiatlas/${2}*
 do

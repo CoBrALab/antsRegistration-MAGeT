@@ -32,7 +32,7 @@ do
   echo ${subject}
 
   subjectname=$(basename ${subject})
-  if [[ -d ${targetdir}/NFOLDCV/${natlases}atlases_${ntemplates}templates_fold/${subjectname} ]]
+  if [[ -d ${targetdir}/NFOLDCV_subject/${natlases}atlases_${ntemplates}templates_fold/${subjectname} ]]
   then
     ((i++))
     continue
