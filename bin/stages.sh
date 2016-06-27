@@ -5,6 +5,75 @@ stage_init () {
   mkdir -p input/atlas input/template input/subject input/model
 }
 
+stage_estimate () {
+  #Function estimates the memory requirements for doing registrations based on
+  #empircally fit equation memoryGB = a * exp(b/fixed) + d * exp(e/moving) + f
+  # a=1.10515
+  # b=1.53065
+  # d=0.36404
+  # e=0.98150
+  # f=-2.82957
+  #This function only checks the resolution of the first atlas, template and
+  #subject
+  info "Checking Resolution of First Atlas"
+  local atlas_res=$(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
+  info "  Found average: ${atlas_res}"
+  info "Checking Resolution of First Template"
+  local template_res=$(PrintHeader $(echo ${templates} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
+  info "  Found average: ${template_res}"
+  info "Checking Resolution of First Subject"
+  local subject_res=$(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
+  info "  Found average: ${subject_res}"
+
+  notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
+
+  local atlas_template_memory=$(echo "1.10515 * e(1.53065 / ${template_res}) + 0.36404 * e(0.98150 / ${atlas_res}) - 2.82957" | bc -l)
+  local template_subject_memory=$(echo "1.10515 * e(1.53065 / ${subject_res}) + 0.36404 * e(0.98150 / ${template_res}) - 2.82957" | bc -l)
+
+  #Estimate walltime from empircally fit equation: seconds = a * exp(b/fixed) + d
+  # a 2.063e+03
+  # b 1.350e+00
+  # d -3.830e+03
+  local atlas_template_walltime_seconds=$(echo "2.063e+03 * e(1.350e+00 / ${template_res}) - 3.830e+03" | bc -l)
+  local template_subject_walltime_seconds=$(echo "2.063e+03 * e(1.350e+00 / ${subject_res}) - 3.830e+03" | bc -l)
+
+  #A little bit of special casing for SciNet, eventually need to figure out
+  #rules for non-scinet systems
+  if [[ $(printenv) =~ SCINET ]]
+  then
+
+    #Breakup chunks/parallel calls for scinet jobs
+    if [[ $(echo ${atlas_template_memory} > 24 | bc) ]]
+    then
+      qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
+    elif [[ $(echo ${atlas_template_memory} > 16 | bc) ]]
+    then
+      qbatch_atlas_template_opts="--highmem -c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
+    elif [[ $(echo ${atlas_template_memory} > 8 | bc) ]]
+    then
+      qbatch_atlas_template_opts="-c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
+    else
+      qbatch_atlas_template_opts="-c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
+    fi
+
+    if [[ $(echo ${template_subject_memory} > 24 | bc) ]]
+    then
+      qbatch_template_subject_opts="--highmem -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
+    elif [[ $(echo ${template_subject_memory} > 16 | bc) ]]
+    then
+      qbatch_template_subject_opts="--highmem -c 2 -j 2 --walltime $(echo "${template_subject_walltime_seconds} * 2" | bc)"
+    elif [[ $(echo ${template_subject_memory} > 8 | bc) ]]
+    then
+      qbatch_template_subject_opts="-c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
+    else
+      qbatch_template_subject_opts="-c 2 -j 2 --walltime  $(echo "${template_subject_walltime_seconds} * 2" | bc)"
+    fi
+
+  else
+    true
+  fi
+}
+
 stage_register_atlas_template () {
   #Atlas to template registration
   info "Computing Atlas to Template Registrations"
@@ -19,7 +88,7 @@ stage_register_atlas_template () {
         debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
         echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} -j 1 -c 2 --jobname ${datetime}-mb_register_atlas_template-${templatename} --walltime 5:00:00 -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} --jobname ${datetime}-mb_register_atlas_template-${templatename} ${qbatch_atlas_template_opts} -
   done
 }
 
@@ -91,7 +160,7 @@ stage_register_template_subject () {
         debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
         echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} -j 2 -c 8 --jobname ${datetime}-mb_register_template_subject-${subjectname} --walltime 10:00:00 -
+    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} --jobname ${datetime}-mb_register_template_subject-${subjectname} ${qbatch_template_subject_opts} -
   done
 }
 
