@@ -55,12 +55,12 @@ do
     mkdir -p ${folddir}/output/labels/majorityvote
 
     #Link in precomputed transforms and candidate labels
-    ln -s $(readlink -f output/transforms) ${folddir}/output/transforms
-    ln -s $(readlink -f output/labels/candidates) ${folddir}/output/labels/candidates
+    ln -s "$(readlink -f output/transforms)" ${folddir}/output/transforms
+    ln -s "$(readlink -f output/labels/candidates)" ${folddir}/output/labels/candidates
 
     #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
     tmp=("${atlases[@]/_t1.mnc/*}")
-    ln -s "${tmp[@]}" ${folddir}/input/atlas
+    ln -s ${tmp[@]} ${folddir}/input/atlas
     ln -s "${templates[@]}" ${folddir}/input/template
     ln -s ${subject} ${folddir}/input/subject
     (cd ${folddir}; mb.sh -- vote)

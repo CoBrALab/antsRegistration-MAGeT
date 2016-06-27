@@ -36,11 +36,11 @@ do
     mkdir -p ${folddir}/input/{atlas,template,subject}
     mkdir -p ${folddir}/output/labels/majorityvote
     #Link in precomputed transforms and candidate labels
-    ln -s $(readlink -f output/transforms) ${folddir}/output/transforms
-    ln -s $(readlink -f output/labels/candidates) ${folddir}/output/labels/candidates
+    ln -s "$(readlink -f output/transforms)" ${folddir}/output/transforms
+    ln -s "$(readlink -f output/labels/candidates)" ${folddir}/output/labels/candidates
     #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
     tmp=("${oddarray[@]/_t1.mnc/*}")
-    cp -l "${tmp[@]}" ${folddir}/input/atlas
+    cp -l ${tmp[@]} ${folddir}/input/atlas
     #Link in all templates
     cp -l "${templates[@]}" ${folddir}/input/template
     #Do a quick clever rewrite of the atlas file left out to its corresponding subject file named identically
