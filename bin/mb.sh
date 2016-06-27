@@ -55,7 +55,7 @@ fi
 
 if [[ $(echo ${subjects} | wc -w) == 0 ]]
 then
-  error "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz]" && exit 1
+  warning "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz], this is okay if performing multiatlas"
 fi
 
 if [[ $(( $(echo ${atlases} | wc -w) % 2 )) == 0 ]]
