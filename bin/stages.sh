@@ -15,6 +15,9 @@ stage_estimate () {
   # f=-2.8295687
   #This function only checks the resolution of the first atlas, template and
   #subject
+
+  scaling_factor=${arg_f}
+
   info "Checking Resolution of First Atlas"
   local atlas_res=$(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
   info "  Found average: ${atlas_res}"
@@ -27,15 +30,15 @@ stage_estimate () {
 
   notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
 
-  local atlas_template_memory=$(echo "1.1051496 * e(1.5306549 / ${template_res}) + 0.3640419 * e(0.9815018/ ${atlas_res}) - 2.8295687" | bc -l)
-  local template_subject_memory=$(echo "1.1051496 * e(1.5306549 / ${subject_res}) + 0.3640419 * e(0.9815018 / ${template_res}) - 2.8295687" | bc -l)
+  local atlas_template_memory=$(echo "(1.1051496 * e(1.5306549 / ${template_res}) + 0.3640419 * e(0.9815018/ ${atlas_res}) - 2.8295687) * ${scaling_factor}" | bc -l)
+  local template_subject_memory=$(echo "(1.1051496 * e(1.5306549 / ${subject_res}) + 0.3640419 * e(0.9815018 / ${template_res}) - 2.8295687) * ${scaling_factor}" | bc -l)
 
   #Estimate walltime from empircally fit equation: seconds = a * exp(b/fixed) + d
   # a 2062.784050
   # b 1.350187
   # d -3830.182712
-  local atlas_template_walltime_seconds=$(echo "2062.784050 * e(1.350187 / ${template_res}) - 3830.182712" | bc -l | cut -d"." -f1)
-  local template_subject_walltime_seconds=$(echo "2062.784050 * e(1.350187 / ${subject_res}) - 3830.182712" | bc -l | cut -d"." -f1)
+  local atlas_template_walltime_seconds=$(echo "(2062.784050 * e(1.350187 / ${template_res}) - 3830.182712) * ${scaling_factor}" | bc -l | cut -d"." -f1)
+  local template_subject_walltime_seconds=$(echo "(2062.784050 * e(1.350187 / ${subject_res}) - 3830.182712) * ${scaling_factor}" | bc -l | cut -d"." -f1)
 
   #A little bit of special casing for SciNet, eventually need to figure out
   #rules for non-scinet systems
@@ -43,7 +46,12 @@ stage_estimate () {
   then
 
     #Breakup chunks/parallel calls for scinet jobs
-    if [[ $(echo ${atlas_template_memory} > 24 | bc) ]]
+    if [[ $(echo ${atlas_template_memory} > 32 | bc) ]]
+    then
+      warning "MAGeTbrain estimates memory usage of ${atlas_template_memory} GB for atlas-template registrations"
+      warning "  This memory usage is higher than the SciNet highmem nodes, you may experience failures"
+      qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
+    elif [[ $(echo ${atlas_template_memory} > 24 | bc) ]]
     then
       qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     elif [[ $(echo ${atlas_template_memory} > 16 | bc) ]]
