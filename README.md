@@ -169,6 +169,51 @@ templates, run ``multiatlas`` mode, then QC the resulting labels. Choose the
 bestquality labels from the template pool and use those subjects as your
 templates. Run MAGeTbrain as normal from there.
 
+## Complex MAGeTbrain Runs
+
+### Resolution
+
+MAGeTbrain was originally designed and optimized for the case of CoBrALab's
+0.3 mm isotropic atlases and 1 mm isotropic template/subject whole-brain
+MRIs with T1 or T2 contrasts.
+
+This new version of MAGeTbrain will attempt to compute walltime and memory
+requirements for a given input resolution based on some empirical research
+<https://github.com/gdevenyi/antsRegistration-benchmarking> plus a 5% safety
+factor for errors in estimates.
+
+### Multi-spectral
+
+MAGeTbrain now supports multi-spectral registrations (combined contrasts
+from multiple MRI volumes) via the
+``--reg-command mb_register_multispectral.sh`` option. This registration script
+will use any combined contrasts found for both affine and non-linear
+registrations with equal weighting.
+
+Multi-spectral registrations effectively double the amount of scan data used
+during registration, it is suggested that you increase the scaling factor
+``--factor`` to approximately 2 to compensate.
+
+### ROI (masked) based registrations
+
+Using a brain or ROI mask provides a number a number of potential benefits,
+improved registrations and reduction in memory requirements, although these
+benefits have not been throughly examined empirically.
+
+If the masks are supplied and the ``--reg-command mb_register_masked.sh``
+option is specified, affine registrations will first be done unmasked and then
+the last affine stage and non-linear stage will be done with the mask applied.
+If an ROI mask is used, please ensure that your labels of interest lie within
+the ROI, otherwise the non-linear registrations will never be computed for your
+labels.
+
+### Slabs
+
+MAGeTbrain should successfully operate using slabs rather than whole brains as
+inputs. It may benefit from an ROI mask defining the boundary of the slab in
+order to prevent non-linear registrations from wasting cycles and avoiding
+possible sharp-edge effects on the smooth registration fields.
+
 ## How to install/configure MAGeTbrain to run elsewhere
 
 MAGeTbrain was designed and tested to run on Compute Canada's SciNet
