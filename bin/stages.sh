@@ -46,31 +46,31 @@ stage_estimate () {
   then
 
     #Breakup chunks/parallel calls for scinet jobs
-    if [[ $(echo ${atlas_template_memory} > 32 | bc) ]]
+    if [[ $(echo "${atlas_template_memory} > 32" | bc) ]]
     then
       warning "MAGeTbrain estimates memory usage of ${atlas_template_memory} GB for atlas-template registrations"
       warning "  This memory usage is higher than the SciNet highmem nodes, you may experience failures"
       qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
-    elif [[ $(echo ${atlas_template_memory} > 24 | bc) ]]
+    elif [[ $(echo "${atlas_template_memory} > 24" | bc) ]]
     then
       qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
-    elif [[ $(echo ${atlas_template_memory} > 16 | bc) ]]
+    elif [[ $(echo "${atlas_template_memory} > 16" | bc) ]]
     then
       qbatch_atlas_template_opts="--highmem -c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
-    elif [[ $(echo ${atlas_template_memory} > 8 | bc) ]]
+    elif [[ $(echo "${atlas_template_memory} > 8" | bc) ]]
     then
       qbatch_atlas_template_opts="-c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     else
       qbatch_atlas_template_opts="-c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
     fi
 
-    if [[ $(echo ${template_subject_memory} > 24 | bc) ]]
+    if [[ $(echo "${template_subject_memory} > 24" | bc) ]]
     then
       qbatch_template_subject_opts="--highmem -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
-    elif [[ $(echo ${template_subject_memory} > 16 | bc) ]]
+    elif [[ $(echo "${template_subject_memory} > 16" | bc) ]]
     then
       qbatch_template_subject_opts="--highmem -c 2 -j 2 --walltime $(echo "${template_subject_walltime_seconds} * 2" | bc)"
-    elif [[ $(echo ${template_subject_memory} > 8 | bc) ]]
+    elif [[ $(echo "${template_subject_memory} > 8" | bc) ]]
     then
       qbatch_template_subject_opts="-c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
     else
