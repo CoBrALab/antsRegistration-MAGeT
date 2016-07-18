@@ -152,23 +152,12 @@ fi
 #Exit if status exists in command list, doesn't matter if other commands were listed
 [[ $commandlist =~ "status" ]] && exit 0
 
-# info "Checking dimensions of first atlas"
-# SIZE=( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | tr 'x' '\n') )
-# for dim in ${SIZE[@]}
-# do
-#   if [[ $(echo "$dim < 1.0" | bc) == 1 ]]
-#   then
-#     notice "High resolution atlas detected, atlas-template registrations will be submitted to 32GB nodes on SciNet"
-#     hires="--highmem"
-#     break
-#   else
-#     hires=''
-#   fi
-# done
-
 for stage in $commandlist
 do
   case ${stage} in
+    template|subject|multiatlas|run)
+      stage_estimate
+      ;;&
     template|multiatlas|run)
       stage_register_atlas_template
       ;;&
