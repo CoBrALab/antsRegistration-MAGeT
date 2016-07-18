@@ -78,7 +78,9 @@ stage_estimate () {
     fi
 
   else
-    true
+    #Dumbest job request possible, request memory and a single CPU for a generic cluster
+    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(echo ${atlas_template_walltime_seconds} * 8)"
+    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(echo ${template_subject_walltime_seconds} * 8)"
   fi
 }
 
