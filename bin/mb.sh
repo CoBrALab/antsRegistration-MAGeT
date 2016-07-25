@@ -146,7 +146,7 @@ info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc 
 if [[ -d output/multiatlas ]]
 then
   info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
-  info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
+  info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
 fi
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
