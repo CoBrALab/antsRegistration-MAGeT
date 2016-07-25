@@ -18,6 +18,9 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 -   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT or
 [minc-toolkit-v2](https://bic-mni.github.io) version 1.9.11 or later
 
+- [bc](https://www.gnu.org/software/bc/) any version (this comes standard with
+most linux systems)
+
 MAGeTbrain is very computationally expensive, performing
 ``atlases*templates + templates*subjects`` linear and non-linear registrations.
 This produces large number of files of moderate file size. Typical subject
@@ -68,7 +71,7 @@ contrast types but may require tweaking of time/memory estimates.
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
-> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 ANTs/git qbatch/git gnu-parallel/20150822
+> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 ANTs/git qbatch/git gnu-parallel/20150822 extras/64_6.4
 > source antsRegistration-MAGeT/bin/activate
 > cd /path/to/my/working/Directory
 > mb.sh -- init
