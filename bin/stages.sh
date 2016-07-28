@@ -7,38 +7,35 @@ stage_init () {
 
 stage_estimate () {
   #Function estimates the memory requirements for doing registrations based on
-  #empircally fit equation memoryGB = a * exp(b/fixed) + d * exp(e/moving) + f
-  # a=1.1051496
-  # b=1.5306549
-  # d=0.3640419
-  # e=0.9815018
-  # f=-2.8295687
+  #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels
+  local a=5.14706437212*10^-07
+  local b=4.66026378400*10^-08
   #This function only checks the resolution of the first atlas, template and
   #subject
 
   scaling_factor=${arg_f}
 
   info "Checking Resolution of First Atlas"
-  local atlas_res=$(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
-  info "  Found average: ${atlas_res}"
+  local atlas_voxels=$(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  info "  Found ${atlas_voxels} voxels"
   info "Checking Resolution of First Template"
-  local template_res=$(PrintHeader $(echo ${templates} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
-  info "  Found average: ${template_res}"
+  local template_voxels=$(PrintHeader $(echo ${templates} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  info "  Found ${template_voxels} voxels"
   info "Checking Resolution of First Subject"
-  local subject_res=$(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 1 | awk 'BEGIN { RS = "x" } {s+=$1; count+=1} END {print s/count}' )
-  info "  Found average: ${subject_res}"
+  local subject_voxels=$(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  info "  Found ${subject_voxels} voxels"
 
   notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
 
-  local atlas_template_memory=$(echo "(1.1051496 * e(1.5306549 / ${template_res}) + 0.3640419 * e(0.9815018/ ${atlas_res}) - 2.8295687) * ${scaling_factor}" | bc -l)
-  local template_subject_memory=$(echo "(1.1051496 * e(1.5306549 / ${subject_res}) + 0.3640419 * e(0.9815018 / ${template_res}) - 2.8295687) * ${scaling_factor}" | bc -l)
+  local atlas_template_memory=$(echo "(${a} *  ${template_voxels} + ${b} * ${atlas_voxels}) * ${scaling_factor}" | bc -l )
+  local template_subject_memory=$(echo "(${a} *  ${subject_voxels} + ${b} * ${template_voxels}) * ${scaling_factor}" | bc -l )
 
-  #Estimate walltime from empircally fit equation: seconds = a * exp(b/fixed) + d
-  # a 2062.784050
-  # b 1.350187
-  # d -3830.182712
-  local atlas_template_walltime_seconds=$(echo "(2062.784050 * e(1.350187 / ${template_res}) - 3830.182712) * ${scaling_factor}" | bc -l | cut -d"." -f1)
-  local template_subject_walltime_seconds=$(echo "(2062.784050 * e(1.350187 / ${subject_res}) - 3830.182712) * ${scaling_factor}" | bc -l | cut -d"." -f1)
+  #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
+  local d=6.42823232396*10^-04
+  local e=2.67264359869*10^-06
+  local f=3.83604652955*10^02
+  local atlas_template_walltime_seconds=$(echo "(${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor}"  | bc -l | cut -d"." -f1)
+  local template_subject_walltime_seconds=$(echo "(${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor}" | bc -l | cut -d"." -f1)
 
   #A little bit of special casing for SciNet, eventually need to figure out
   #rules for non-scinet systems
@@ -79,8 +76,8 @@ stage_estimate () {
 
   else
     #Dumbest job request possible, request memory and a single CPU for a generic cluster
-    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(echo ${atlas_template_walltime_seconds} * 8)"
-    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(echo ${template_subject_walltime_seconds} * 8)"
+    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(echo ${atlas_template_walltime_seconds} * 8 | bc)"
+    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(echo ${template_subject_walltime_seconds} * 8 | bc)"
   fi
 }
 
