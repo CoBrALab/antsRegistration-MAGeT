@@ -8,8 +8,8 @@ stage_init () {
 stage_estimate () {
   #Function estimates the memory requirements for doing registrations based on
   #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels
-  local a=5.14706437212*10^-07
-  local b=4.66026378400*10^-08
+  local a=5.14706437212e-07
+  local b=4.66026378400e-08
   #This function only checks the resolution of the first atlas, template and
   #subject
 
@@ -27,15 +27,15 @@ stage_estimate () {
 
   notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
 
-  local atlas_template_memory=$(echo "(${a} *  ${template_voxels} + ${b} * ${atlas_voxels}) * ${scaling_factor}" | bc -l )
-  local template_subject_memory=$(echo "(${a} *  ${subject_voxels} + ${b} * ${template_voxels}) * ${scaling_factor}" | bc -l )
+  local atlas_template_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels}) * ${scaling_factor})))")
+  local template_subject_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels}) * ${scaling_factor})))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
-  local d=6.42823232396*10^-04
-  local e=2.67264359869*10^-06
-  local f=3.83604652955*10^02
-  local atlas_template_walltime_seconds=$(echo "(${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor}"  | bc -l | cut -d"." -f1)
-  local template_subject_walltime_seconds=$(echo "(${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor}" | bc -l | cut -d"." -f1)
+  local d=6.42823232396e-04
+  local e=2.67264359869e-06
+  local f=3.83604652955e+02
+  local atlas_template_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor}))")
+  local template_subject_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor}))")
 
   #A little bit of special casing for SciNet, eventually need to figure out
   #rules for non-scinet systems
