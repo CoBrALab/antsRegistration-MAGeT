@@ -16,13 +16,13 @@ stage_estimate () {
   scaling_factor=${arg_f}
 
   info "Checking Resolution of First Atlas"
-  local atlas_voxels=$(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  local atlas_voxels=$(( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
   info "  Found ${atlas_voxels} voxels"
   info "Checking Resolution of First Template"
-  local template_voxels=$(PrintHeader $(echo ${templates} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  local template_voxels=$(( $(PrintHeader $(echo ${templates} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
   info "  Found ${template_voxels} voxels"
   info "Checking Resolution of First Subject"
-  local subject_voxels=$(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 2 | sed 's/x/\*/g' | bc -l )
+  local subject_voxels=$(( $(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
   info "  Found ${subject_voxels} voxels"
 
   notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
@@ -43,41 +43,41 @@ stage_estimate () {
   then
 
     #Breakup chunks/parallel calls for scinet jobs
-    if [[ $(echo "${atlas_template_memory} > 32" | bc) == 1 ]]
+    if [[ ${atlas_template_memory} -gt 32 ]]
     then
       warning "MAGeTbrain estimates memory usage of ${atlas_template_memory} GB for atlas-template registrations"
       warning "  This memory usage is higher than the SciNet highmem nodes, you may experience failures"
       qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
-    elif [[ $(echo "${atlas_template_memory} > 24" | bc) == 1 ]]
+    elif [[ ${atlas_template_memory} -gt 24 ]]
     then
       qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
-    elif [[ $(echo "${atlas_template_memory} > 16" | bc) == 1 ]]
+    elif [[ ${atlas_template_memory} -gt 16 ]]
     then
-      qbatch_atlas_template_opts="--highmem -c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
-    elif [[ $(echo "${atlas_template_memory} > 8" | bc) == 1 ]]
+      qbatch_atlas_template_opts="--highmem -c 2 -j 2 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
+    elif [[ ${atlas_template_memory} -gt 8 ]]
     then
       qbatch_atlas_template_opts="-c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     else
-      qbatch_atlas_template_opts="-c 2 -j 2 --walltime $(echo "${atlas_template_walltime_seconds} * 2" | bc)"
+      qbatch_atlas_template_opts="-c 2 -j 2 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
     fi
 
-    if [[ $(echo "${template_subject_memory} > 24" | bc) == 1 ]]
+    if [[ ${template_subject_memory} -gt 24 ]]
     then
       qbatch_template_subject_opts="--highmem -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
-    elif [[ $(echo "${template_subject_memory} > 16" | bc) == 1 ]]
+    elif [[ ${template_subject_memory} -gt 16 ]]
     then
-      qbatch_template_subject_opts="--highmem -c 2 -j 2 --walltime $(echo "${template_subject_walltime_seconds} * 2" | bc)"
-    elif [[ $(echo "${template_subject_memory} > 8" | bc) == 1 ]]
+      qbatch_template_subject_opts="--highmem -c 2 -j 2 --walltime $(( ${template_subject_walltime_seconds} * 2 ))"
+    elif [[ ${template_subject_memory} -gt 8 ]]
     then
       qbatch_template_subject_opts="-c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
     else
-      qbatch_template_subject_opts="-c 2 -j 2 --walltime  $(echo "${template_subject_walltime_seconds} * 2" | bc)"
+      qbatch_template_subject_opts="-c 2 -j 2 --walltime  $(( ${template_subject_walltime_seconds} * 2 ))"
     fi
 
   else
     #Dumbest job request possible, request memory and a single CPU for a generic cluster
-    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(echo "${atlas_template_walltime_seconds} * 8" | bc)"
-    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(echo "${template_subject_walltime_seconds} * 8" | bc)"
+    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(( ${atlas_template_walltime_seconds} * 8 ))"
+    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(( ${template_subject_walltime_seconds} * 8 ))"
   fi
 }
 
