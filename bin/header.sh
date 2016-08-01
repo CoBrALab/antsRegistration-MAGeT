@@ -102,7 +102,7 @@ read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -h --help              This help page.
   -n --dry-run           Don't submit any jobs.
   -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
-  -f --factor      [arg] Scaling factor for time and memory estimates. Default="1.05"
+  -f --factor      [arg] Scaling factor for time and memory estimates. Default="1.15"
 EOF
 read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
   MAGeTBrain implementation using ANTs

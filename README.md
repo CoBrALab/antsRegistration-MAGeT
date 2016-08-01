@@ -18,8 +18,6 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 -   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT or
 [minc-toolkit-v2](https://bic-mni.github.io) version 1.9.11 or later
 
-- [bc](https://www.gnu.org/software/bc/) any version (this comes standard with
-most linux systems)
 
 MAGeTbrain is very computationally expensive, performing
 ``atlases*templates + templates*subjects`` linear and non-linear registrations.
