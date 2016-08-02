@@ -15,8 +15,7 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 
 -   [qbatch](https://github.com/pipitone/qbatch) version 1.1 or later
 
--   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT or
-[minc-toolkit-v2](https://bic-mni.github.io) version 1.9.11 or later
+-   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT 
 
 
 MAGeTbrain is very computationally expensive, performing
