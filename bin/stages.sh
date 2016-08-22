@@ -45,32 +45,42 @@ stage_estimate () {
     #Breakup chunks/parallel calls for scinet jobs
     if [[ ${atlas_template_memory} -gt 32 ]]
     then
-      warning "MAGeTbrain estimates memory usage of ${atlas_template_memory} GB for atlas-template registrations"
-      warning "  This memory usage is higher than the SciNet highmem nodes, you may experience failures"
-      qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
+      info "Submitting template jobs to 64GB nodes"
+      qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     elif [[ ${atlas_template_memory} -gt 24 ]]
     then
-      qbatch_atlas_template_opts="--highmem -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
+      info "Submitting template jobs to 32GB nodes"
+      qbatch_atlas_template_opts="--pbs-nodes-spec m32g -c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     elif [[ ${atlas_template_memory} -gt 16 ]]
     then
-      qbatch_atlas_template_opts="--highmem -c 2 -j 2 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
+      qbatch_atlas_template_opts="--pbs-nodes-spec m32g -c 2 -j 2 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
     elif [[ ${atlas_template_memory} -gt 8 ]]
     then
+      info "Submitting template jobs to 16GB nodes"
       qbatch_atlas_template_opts="-c 1 -j 1 --walltime ${atlas_template_walltime_seconds}"
     else
+      info "Submitting template jobs to 16GB nodes"
       qbatch_atlas_template_opts="-c 2 -j 2 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
     fi
 
-    if [[ ${template_subject_memory} -gt 24 ]]
+    if [[ ${template_subject_memory} -gt 32 ]]
     then
-      qbatch_template_subject_opts="--highmem -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
+      info "Submitting subject jobs to 64GB nodes"
+      qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
+    elif [[ ${template_subject_memory} -gt 24 ]]
+    then
+      info "Submitting subject jobs to 32GB nodes"
+      qbatch_template_subject_opts="--pbs-nodes-spec m32g -c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
     elif [[ ${template_subject_memory} -gt 16 ]]
     then
-      qbatch_template_subject_opts="--highmem -c 2 -j 2 --walltime $(( ${template_subject_walltime_seconds} * 2 ))"
+      info "Submitting subject jobs to 32GB nodes"
+      qbatch_template_subject_opts="--pbs-nodes-spec m32g -c 2 -j 2 --walltime $(( ${template_subject_walltime_seconds} * 2 ))"
     elif [[ ${template_subject_memory} -gt 8 ]]
     then
+      info "Submitting subject jobs to 16GB nodes"
       qbatch_template_subject_opts="-c 1 -j 1 --walltime ${template_subject_walltime_seconds}"
     else
+      info "Submitting subject jobs to 16GB nodes"
       qbatch_template_subject_opts="-c 2 -j 2 --walltime  $(( ${template_subject_walltime_seconds} * 2 ))"
     fi
 
