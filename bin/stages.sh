@@ -7,38 +7,36 @@ stage_init () {
 
 stage_estimate () {
   #Function estimates the memory requirements for doing registrations based on
-  #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels
-  local a=5.14706437212e-07
-  local b=4.66026378400e-08
-  #This function only checks the resolution of the first atlas, template and
-  #subject
+  #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels + c
+  local a=6.820853e-07
+  local b=5.455959e-08
+  local c=1.364185e-01
 
   scaling_factor=${arg_f}
 
   info "Checking Resolution of First Atlas"
-  local atlas_voxels=$(( $(PrintHeader $(echo ${atlases} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
+  local atlas_voxels=$(( $(PrintHeader $(ls -LS ${atlases} | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${atlas_voxels} voxels"
   info "Checking Resolution of First Template"
-  local template_voxels=$(( $(PrintHeader $(echo ${templates} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
+  local template_voxels=$(( $(PrintHeader $(ls -LS ${templates} | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${template_voxels} voxels"
   info "Checking Resolution of First Subject"
-  local subject_voxels=$(( $(PrintHeader $(echo ${subjects} | cut -d " " -f 1) 2 | sed 's/x/\*/g') ))
+  local subject_voxels=$(( $(PrintHeader $(ls -LS ${subjects} | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${subject_voxels} voxels"
 
-  notice "MAGeTbrain makes no attempt to find the maximum resolution file, if you have mixed resolutions, make your highest resoluition file the first file"
+  notice "MAGeTbrain estimates walltime and memory based on files with the largest file size, if some files are uncompressed, this estimate may be incorrect"
 
-  local atlas_template_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels}) * ${scaling_factor})))")
-  local template_subject_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels}) * ${scaling_factor})))")
+  local atlas_template_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor})))")
+  local template_subject_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor})))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
-  local d=6.42823232396e-04
-  local e=2.67264359869e-06
-  local f=3.83604652955e+02
+  local d=9.431370e-04
+  local e=5.159085e-06
+  local f=3.119656e+02
   local atlas_template_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor}))")
   local template_subject_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor}))")
 
-  #A little bit of special casing for SciNet, eventually need to figure out
-  #rules for non-scinet systems
+  #A little bit of special casing for SciNet
   if [[ $(printenv) =~ SCINET ]]
   then
 
