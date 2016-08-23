@@ -3,6 +3,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
+
 labelname=$1
 atlas=$2
 template=$3

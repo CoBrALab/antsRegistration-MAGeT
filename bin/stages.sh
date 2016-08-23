@@ -103,7 +103,7 @@ stage_register_atlas_template () {
         debug $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
         echo $regcommand ${atlas} ${template} output/transforms/atlas-template/${templatename}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=8 qbatch ${dryrun} --jobname ${datetime}-mb_register_atlas_template-${templatename} ${qbatch_atlas_template_opts} -
+    done | qbatch ${dryrun} --jobname ${datetime}-mb_register_atlas_template-${templatename} ${qbatch_atlas_template_opts} -
   done
 }
 
@@ -132,7 +132,7 @@ stage_multiatlas_resample () {
         fi
       done
     done
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2 qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --jobname ${datetime}-mb-multiatlas_resample --walltime 4:00:00 -
+  done | qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --jobname ${datetime}-mb-multiatlas_resample --walltime 4:00:00 -
 }
 
 stage_multiatlas_vote () {
@@ -156,7 +156,7 @@ stage_multiatlas_vote () {
         mv /tmp/${templatename}_${label} output/multiatlas/labels/majorityvote/${templatename}_${label}"""
       fi
     done
-  done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} -j 2 -c 100 --depend "${datetime}-mb-multiatlas_resample*" --jobname ${datetime}-mb-multiatlas_vote --walltime 4:00:00 -
+  done | qbatch ${dryrun} -j 2 -c 100 --depend "${datetime}-mb-multiatlas_resample*" --jobname ${datetime}-mb-multiatlas_vote --walltime 4:00:00 -
 }
 
 
@@ -175,7 +175,7 @@ stage_register_template_subject () {
         debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
         echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} --jobname ${datetime}-mb_register_template_subject-${subjectname} ${qbatch_template_subject_opts} -
+    done | qbatch ${dryrun} --jobname ${datetime}-mb_register_template_subject-${subjectname} ${qbatch_template_subject_opts} -
   done
 }
 
@@ -201,7 +201,7 @@ stage_resample () {
           fi
         done
       done
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2 qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --depend "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
+    done | qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --depend "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
   done
 }
 
@@ -230,7 +230,7 @@ stage_vote () {
         ConvertImage 3 output/labels/majorityvote/${subjectname}_${label} /tmp/${subjectname}_${label} 1 && \
         mv /tmp/${subjectname}_${label} output/labels/majorityvote/${subjectname}_${label}"""
       fi
-    done | ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4 qbatch ${dryrun} -j 2 -c 100 --depend "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
+    done | qbatch ${dryrun} -j 2 -c 100 --depend "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
   done
 }
 

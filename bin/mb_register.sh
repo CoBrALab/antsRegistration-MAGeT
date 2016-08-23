@@ -2,6 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
+
 movingfile=$1
 fixedfile=$2
 outputdir=$3
