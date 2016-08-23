@@ -83,9 +83,9 @@ stage_estimate () {
     fi
 
   else
-    #Dumbest job request possible, request memory and a single CPU for a generic cluster
-    qbatch_atlas_template_opts="-c 1 -j 1 --mem ${atlas_template_memory}G --walltime $(( ${atlas_template_walltime_seconds} * 8 ))"
-    qbatch_template_subject_opts="-c 1 -j 1 --mem ${template_subject_memory}G  --walltime $(( ${template_subject_walltime_seconds} * 8 ))"
+    # Assume QBATCH variables are set properly, scale memory and walltime according to QBATCH specifications
+    qbatch_atlas_template_opts="--mem $(( ${atlas_template_memory} * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( ${atlas_template_walltime_seconds} * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    qbatch_template_subject_opts="--mem $(( ${template_subject_memory} * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G  --walltime $(( ${template_subject_walltime_seconds} * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
   fi
 }
 
