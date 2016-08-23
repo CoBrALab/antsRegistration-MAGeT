@@ -13,7 +13,7 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 
 -   [python](https://www.python.org) version 2.7.x or later
 
--   [qbatch](https://github.com/pipitone/qbatch) version 1.1 or later
+-   [qbatch](https://github.com/pipitone/qbatch) git version
 
 -   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT 
 
