@@ -19,4 +19,4 @@ antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 ${M
   --transform SyN[0.5,3,0] --metric CC[$fixedfile,$movingfile,1,4] --convergence [100x25,1e-6,10] --shrink-factors 2x1 --smoothing-sigmas 1x0
 
 #Inverses are never used, remove them right after creation (if only I could disable creation...)
-rm $outputdir/$(basename $movingfile)-$(basename $fixedfile)*
+rm $outputdir/$(basename $movingfile)-$(basename $fixedfile)*inverse*
