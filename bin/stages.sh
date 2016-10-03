@@ -202,7 +202,7 @@ stage_resample () {
           fi
         done
       done
-    done | qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --depend "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 12:00:00 -
+    done | qbatch ${dryrun} -j 4 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --depend "${datetime}-mb_register_template_subject-${subjectname}*" --jobname ${datetime}-mb_resample-${subjectname} --walltime 4:00:00 -
   done
 }
 
@@ -231,8 +231,8 @@ stage_vote () {
         ConvertImage 3 output/labels/majorityvote/${subjectname}_${label} /tmp/${subjectname}_${label} 1 && \
         mv /tmp/${subjectname}_${label} output/labels/majorityvote/${subjectname}_${label}"""
       fi
-    done | qbatch ${dryrun} -j 2 -c 100 --depend "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 4:00:00 -
-  done
+    done
+  done | qbatch ${dryrun} -j 2 -c 1000 --depend "${datetime}-mb_resample*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 0:30:00 -
 }
 
 stage_cleanup () {
