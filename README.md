@@ -68,7 +68,7 @@ contrast types but may require tweaking of time/memory estimates.
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
-> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 ANTs/git qbatch/git gnu-parallel/20150822 extras/64_6.4
+> module load gcc/5.2.0 intel/15.0.2 python/2.7.8 zlib/1.2.8 qbatch/git gnu-parallel/20150822 extras/64_6.4 ANTs/git
 > source antsRegistration-MAGeT/bin/activate
 > cd /path/to/my/working/Directory
 > mb.sh -- init
