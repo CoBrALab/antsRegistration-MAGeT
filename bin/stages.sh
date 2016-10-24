@@ -26,15 +26,15 @@ stage_estimate () {
 
   notice "MAGeTbrain estimates walltime and memory based on files with the largest file size, if some files are uncompressed, this estimate may be incorrect"
 
-  local atlas_template_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor})))")
-  local template_subject_memory=$(python -c "import math; print max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor})))")
+  local atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor}))))")
+  local template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor}))))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
   local d=9.431370e-04
   local e=5.159085e-06
   local f=3.119656e+02
-  local atlas_template_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor}))")
-  local template_subject_walltime_seconds=$(python -c "import math; print int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor}))")
+  local atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor})))")
+  local template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor})))")
 
   #A little bit of special casing for SciNet
   if [[ $(printenv) =~ SCINET ]]
