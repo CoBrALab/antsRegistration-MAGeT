@@ -1,7 +1,6 @@
 #!/bin/bash
 #mb_resample.sh labelname atlasname templatename subjectname
 set -euo pipefail
-IFS=$'\n\t'
 
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
 
