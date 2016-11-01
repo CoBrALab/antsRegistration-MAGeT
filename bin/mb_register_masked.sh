@@ -5,7 +5,6 @@
 # - ROI based registration, some evidence that this is better than the default registration in the cerebellum, ROI should still be generous
 #Warning: if you do ROI based registration, all labels outside the ROI will be invalid!
 set -euo pipefail
-IFS=$'\n\t'
 
 movingfile=$1
 fixedfile=$2
@@ -21,6 +20,4 @@ antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 ${M
   --transform Similarity[0.1] --metric Mattes[$fixedfile,$movingfile,1] --convergence [2000,1e-6,10] --shrink-factors 4 --smoothing-sigmas 3.397mm --masks [NULL,NULL] \
   --transform Affine[0.1] --metric Mattes[$fixedfile,$movingfile,1] --convergence [2000x2000x2000,1e-6,10] --shrink-factors 4x4x2 --smoothing-sigmas 3.397x1.698x0.849mm --masks [NULL,NULL] \
   --transform Affine[0.1] --metric Mattes[$fixedfile,$movingfile,1] --convergence [2000x2000x2000x2000,1e-6,10] --shrink-factors 4x4x2x1 --smoothing-sigmas 3.397x1.698x0.849x0mm --masks [$fixedmask,$movingmask] \
-  --transform SyN[0.5,3,0] --metric CC[$fixedfile,$movingfile,1,4] --convergence [400x400x400x200x25,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 5x4x2x1x0vox --masks [$fixedmask,$movingmask] && \
-    rm $outputdir/$(basename $movingfile)-$(basename $fixedfile)*inverse*
-#Inverses are never used, remove them right after creation (if only I could disable creation...)
+  --transform SyN[0.5,3,0] --metric CC[$fixedfile,$movingfile,1,4] --convergence [400x400x400x200x25,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 5x4x2x1x0vox --masks [$fixedmask,$movingmask]
