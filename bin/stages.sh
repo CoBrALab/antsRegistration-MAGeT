@@ -215,9 +215,9 @@ stage_vote () {
     for label in ${labels}
     do
       labelname=$(basename ${label})
-      if [[ ! -s output/labels/majorityvote/${subjectname}_${label} ]]
+      if [[ ! -s output/labels/majorityvote/${subjectname}_$(echo $labelname | sed -E 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo $subjectname | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
       then
-        majorityvotingcmd="ImageMath 3 output/labels/majorityvote/${subjectname}_${label} MajorityVoting"
+        majorityvotingcmd="mb_vote.sh ${labelname} ${subject}"
         for atlas in ${atlases}
         do
           atlasname=$(basename ${atlas})
@@ -227,9 +227,6 @@ stage_vote () {
             majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname}"
           done
         done
-        echo """$majorityvotingcmd && \
-        ConvertImage 3 output/labels/majorityvote/${subjectname}_${label} /tmp/${subjectname}_${label} 1 && \
-        mv /tmp/${subjectname}_${label} output/labels/majorityvote/${subjectname}_${label}"""
       fi
     done | qbatch ${dryrun} -j 2 -c 1000 --depend "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 0:30:00 -
   done
