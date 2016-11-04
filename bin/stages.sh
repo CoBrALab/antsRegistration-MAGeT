@@ -260,6 +260,54 @@ stage_qc () {
   done
 }
 
+stage_grid_resample () {
+  #Resample grids into model space
+  info "Computing Grid Resamples"
+  for subject in ${subjects}
+  do
+    subjectname=$(basename ${subject})
+    mkdir -p output/grids/resampled/${subjectname}
+    for template in ${templates}
+    do
+      templatename=$(basename ${template})
+      for atlas in ${atlases}
+      do
+      atlasname=$(basename ${atlas})
+        if [[ ! -s output/grids/resampled/${subjectname}/${atlasname}-${templatename}-${subjectname} ]]
+        then
+          debug mb_grid_resample.sh ${atlas} ${template} ${subject} ${model}
+          echo mb_grid_resample.sh ${atlas} ${template} ${subject} ${model}
+        fi
+      done
+    done | qbatch ${dryrun} -j 2 -c 1000 --depend "${datetime}-mb_register_atlas_template*" --depend "${datetime}-mb_register_template_subject-${subjectname}*" --jobname "${datetime}-mb_grid_resample-${subjectname}" --walltime 4:00:00 -
+  done
+}
+
+stage_grid_average () {
+  #Average model space grids to get consensus grid
+  info "Computing Grid Averages"
+  for subject in ${subjects}
+  do
+    subjectname=$(basename ${subject})
+    mkdir -p output/grids/average/${subjectname}
+    gridavgcommand="mb_grid_average.sh ${subject}"
+    for template in ${templates}
+    do
+      templatename=$(basename ${template})
+      for atlas in ${atlases}
+      do
+      atlasname=$(basename ${atlas})
+        if [[ ! -s output/grids/average/${subjectname}/${subjectname}-gridavg.mnc && ! -s output/grids/average/${subjectname}/${subjectname}-det.mnc && ! -s output/grids/average/${subjectname}/${subjectname}-logdet.mnc ]]
+        then
+          gridavgcommand+=" output/grids/resampled/${subjectname}/${atlasname}-${templatename}-${subjectname}"
+        fi
+      done
+      debug ${gridavgcommand}
+      echo ${gridavgcommand}
+    done | qbatch ${dryrun} -j 2 -c 1000 --depend "${datetime}-mb_grid_resample-${subjectname}*" --jobname "${datetime}-mb_grid_average-${subjectname}" --walltime 4:00:00 -
+  done
+}
+
 stage_cleanup () {
   #Tar and delete intermediate files
   info "Calculating tarring and delete cleanup jobs"

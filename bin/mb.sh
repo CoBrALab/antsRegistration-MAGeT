@@ -110,7 +110,7 @@ else
   subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
 fi
 
-models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr -o -name '*_T1w.nii.gz'' 2> /dev/null || true)
+model=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz' 2> /dev/null || true)
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
 labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_label\*/g') | sed 's/input.*label/label/g' || true)
@@ -215,7 +215,7 @@ info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
 info "  $(echo ${labels} | wc -w) labels in input/atlas"
 info "  $(echo ${templates} | wc -w) templates in input/template"
 info "  $(echo ${subjects} | wc -w) subjects in input/subject"
-info "  $(echo ${models} | wc -w) models in input/models"
+info "  $(echo ${model} | wc -w) models in input/model"
 
 info "Progress:"
 info "  $(find output/transforms/atlas-template -name '*0_GenericAffine.xfm' | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) )) atlas-template registrations completed"
@@ -257,6 +257,12 @@ do
       ;;&
     resample|run)
       stage_resample
+      ;;&
+    grid-resample|morpho)
+      stage_grid_resample
+      ;;&
+    grid-average|morpho)
+      stage_grid_average
       ;;&
     vote|run)
       stage_vote

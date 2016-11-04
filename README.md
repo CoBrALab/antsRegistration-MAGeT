@@ -136,6 +136,17 @@ atlas-template-subject chain. Depends on completion of ``template`` and
 
 -   ``run`` - calculate and submit all standard stages
 
+### Morphology (morpho) stages
+
+Morphology stages require a model and model transforms to be supplied for
+deformation fields to be resampled into a common space.
+
+- ``grid-resample`` - resample all nonlinear grids into a common model space
+and combine them
+
+- ``grid-average`` - average all deformation fields to create a consensus
+average, generate and blur jacobians
+
 Stages manually specified on the command line do not check if their antecedent
 stages have completed successfully, this can result in undefined behavior.
 If you specify stages manually, please ensure that antecedent stages are
@@ -261,6 +272,13 @@ input/
         [ subject1_[t2, pd, fa, md].ext ] - co-registered to t1, requires template to also have this contrast
         [ subject1_mask.ext ] - mask used to focus registration
         ### additional subjects as desired
+    model/
+        model_t1.ext
+        transforms/
+          atlas1_t1.ext-model_t1.ext0_GenericAffine.xfm
+          atlasN_t1.ext-model_t1.ext0_GenericAffine.xfm
+          atlas1_t1.ext-model_t1.ext_grid.ext
+          atlasN_t1.ext-model_t1.ext_grid.ext
 ```
 
 ## Output File/Directory Structure
@@ -306,4 +324,21 @@ output/
             majorityvote/
                 template1_label_name.ext - final majority vote label
                 ### additional labels for each template
+### Optional outputs for morpho mode
+    grids/
+        resampled/
+            subject1_t1.ext/
+                atlas1_t1.ext-template1_t1.ext-subject1_t1.ext
+            ### additional grids for each atlas-template-subject path
+        average/
+            subject1_t1.ext/
+                subject1_gridavg.ext
+                subject1_t1_logdet.ext
+                subject1_t1_det.ext
+                subject1_t1_logdet_1mm.ext
+                subject1_t1_det_1mm.ext
+                subject1_t1_logdet_2mm.ext
+                subject1_t1_det_2mm.ext
+                subject1_t1_logdet_4mm.ext
+                subject1_t1_det_4mm.ext
 ```
