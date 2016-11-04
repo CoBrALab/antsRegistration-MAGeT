@@ -1,3 +1,4 @@
+#!/bin/bash
 #Functions for various stages of mb.sh
 
 stage_init () {
