@@ -23,11 +23,11 @@ source stages.sh
 datetime=$(date -u +%F-%R:%S)
 
 #If the commandlist is empty, assume the command is "run"
-if [[ $# < 1 ]]
+if [[ $# -lt 1 ]]
 then
     commandlist="run"
 else
-    commandlist="$@"
+    commandlist="$*"
 fi
 
 if [[ $commandlist =~ "init" ]]

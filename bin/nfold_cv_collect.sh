@@ -1,6 +1,7 @@
 #!/bin/bash
 #Script to generate csv file of LabelOverlapMeasures from a n-fold CV run
 #Run with nfold_cv_collect.sh <output.csv> <optional matching pattern> <optional target dir>
+set -euo pipefail
 
 if [[ $3 ]]
 then

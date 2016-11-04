@@ -9,6 +9,7 @@
 # This shuffles the atlases to create magetbrain runs with an odd number of atlases with a given atlas left out
 # Afterwards links into the directory the already processed transforms and candidate labels
 # Then all that is left is to run mb.sh in each directory to complete the voting stage
+set -euo pipefail
 
 pool=(input/atlas/*t1.mnc)
 templates=(input/template/*t1.mnc)

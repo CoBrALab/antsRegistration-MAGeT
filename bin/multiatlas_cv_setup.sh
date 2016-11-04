@@ -7,6 +7,7 @@
 # <natlases>
 # Afterwards links into the directory the already processed transforms and candidate labels
 # Then all that is left is to run mb-multiatlas.sh in each directory to complete the voting stage
+set -euo pipefail
 
 nfolds=$1
 natlases=$2

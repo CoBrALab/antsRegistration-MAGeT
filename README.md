@@ -15,7 +15,7 @@ algorithm [MAGeTbrain](https://github.com/CobraLab/MAGeTbrain) built upon
 
 -   [qbatch](https://github.com/pipitone/qbatch) git version
 
--   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT 
+-   [ANTs](https://github.com/stnava/ANTs) with ITK_BUILD_MINC_SUPPORT
 
 
 MAGeTbrain is very computationally expensive, performing
@@ -179,7 +179,7 @@ MRIs with T1 or T2 contrasts.
 
 This new version of MAGeTbrain will attempt to compute walltime and memory
 requirements for a given input resolution based on some empirical research
-<https://github.com/gdevenyi/antsRegistration-benchmarking> plus a 5% safety
+<https://github.com/gdevenyi/antsRegistration-benchmarking> plus a 15% safety
 factor for errors in estimates.
 
 ### Multi-spectral

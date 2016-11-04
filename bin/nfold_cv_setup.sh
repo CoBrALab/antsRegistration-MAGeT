@@ -9,6 +9,7 @@
 # processed transforms and candidate labels
 # Then ``mb.sh -- vote`` is run for each fold, producing final labels
 # Finally, the collection script is done and the folds are cleaned up
+set -euo pipefail
 
 nfolds=$1
 natlases=$2

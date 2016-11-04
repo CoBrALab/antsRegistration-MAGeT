@@ -27,15 +27,19 @@ stage_estimate () {
 
   notice "MAGeTbrain estimates walltime and memory based on files with the largest file size, if some files are uncompressed, this estimate may be incorrect"
 
-  local atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor}))))")
-  local template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor}))))")
+  local  atlas_template_memory
+  atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor}))))")
+  local  template_subject_memory
+  template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor}))))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
   local d=9.431370e-04
   local e=5.159085e-06
   local f=3.119656e+02
-  local atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor})))")
-  local template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor})))")
+  local atlas_template_walltime_seconds
+  atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor})))")
+  local template_subject_walltime_seconds
+  template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor})))")
 
   #A little bit of special casing for SciNet
   if [[ $(printenv) =~ SCINET ]]
@@ -45,11 +49,11 @@ stage_estimate () {
     if [[ ${atlas_template_memory} -gt 62 ]]
     then
       info "Submitting template jobs to 128GB nodes"
-      qbatch_atlas_template_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( ${atlas_template_walltime_seconds} / 2 ))"
+      qbatch_atlas_template_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( atlas_template_walltime_seconds / 2 ))"
     elif [[ ${atlas_template_memory} -gt 30 ]]
     then
       info "Submitting template jobs to 64GB nodes"
-      qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( ${atlas_template_walltime_seconds} / 2 ))"
+      qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( atlas_template_walltime_seconds / 2 ))"
     elif [[ ${atlas_template_memory} -gt 14 ]]
     then
       info "Submitting template jobs to 32GB nodes"
@@ -60,17 +64,17 @@ stage_estimate () {
       qbatch_atlas_template_opts="-c 1 -j 1 --ppj 8 --walltime ${atlas_template_walltime_seconds}"
     else
       info "Submitting template jobs to 16GB nodes, two commands in parallel"
-      qbatch_atlas_template_opts="-c 2 -j 2 --ppj 8 --walltime $(( ${atlas_template_walltime_seconds} * 2 ))"
+      qbatch_atlas_template_opts="-c 2 -j 2 --ppj 8 --walltime $(( atlas_template_walltime_seconds * 2 ))"
     fi
 
     if [[ ${template_subject_memory} -gt 62 ]]
     then
       info "Submitting subject jobs to 128GB nodes"
-      qbatch_template_subject_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( ${template_subject_walltime_seconds} / 2 ))"
+      qbatch_template_subject_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( template_subject_walltime_seconds / 2 ))"
     elif [[ ${template_subject_memory} -gt 30 ]]
     then
       info "Submitting subject jobs to 64GB nodes"
-      qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( ${template_subject_walltime_seconds} / 2 ))"
+      qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( template_subject_walltime_seconds / 2 ))"
     elif [[ ${template_subject_memory} -gt 14 ]]
     then
       info "Submitting subject jobs to 32GB nodes"
@@ -81,13 +85,13 @@ stage_estimate () {
       qbatch_template_subject_opts="-c 1 -j 1 --ppj 8 --walltime ${template_subject_walltime_seconds}"
     else
       info "Submitting subject jobs to 16GB nodes, two commands in parallel"
-      qbatch_template_subject_opts="-c 2 -j 2 --ppj 8 --walltime  $(( ${template_subject_walltime_seconds} * 2 ))"
+      qbatch_template_subject_opts="-c 2 -j 2 --ppj 8 --walltime  $(( template_subject_walltime_seconds * 2 ))"
     fi
 
   else
     # Assume QBATCH variables are set properly, scale memory and walltime according to QBATCH specifications
-    qbatch_atlas_template_opts="--mem $(( ${atlas_template_memory} * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( ${atlas_template_walltime_seconds} * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
-    qbatch_template_subject_opts="--mem $(( ${template_subject_memory} * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G  --walltime $(( ${template_subject_walltime_seconds} * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    qbatch_atlas_template_opts="--mem $(( atlas_template_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( atlas_template_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    qbatch_template_subject_opts="--mem $(( template_subject_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G  --walltime $(( template_subject_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
   fi
 }
 
@@ -172,7 +176,7 @@ stage_register_template_subject () {
     do
       templatename=$(basename ${template})
       #If subject and template name are the same, skip the registration step since it should be identity
-      if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != ${templatename}) ]]
+      if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != "${templatename}") ]]
       then
         debug $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
         echo $regcommand ${template} ${subject} output/transforms/template-subject/${subjectname}
