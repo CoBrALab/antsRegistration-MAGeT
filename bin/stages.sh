@@ -228,6 +228,7 @@ stage_vote () {
             majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname}"
           done
         done
+        debug ${majorityvotingcmd}
         echo ${majorityvotingcmd}
       fi
     done | qbatch ${dryrun} -j 2 -c 1000 --depend "${datetime}-mb_resample-${subjectname}*" --jobname ${datetime}-mb_vote-${subjectname} --walltime 0:30:00 -
