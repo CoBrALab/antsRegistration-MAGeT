@@ -20,7 +20,7 @@ source stages.sh
 
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
-datetime=$(date -u +%F-%R:%S)
+datetime=T$(date -u +%F_%H-%M-%S)
 
 #If the commandlist is empty, assume the command is "run"
 if [[ $# -lt 1 ]]
