@@ -239,6 +239,26 @@ stage_vote () {
   done
 }
 
+stage_qc () {
+  #Voting
+  info "Computing QC Images"
+  for subject in ${subjects}
+  do
+    subjectname=$(basename ${subject})
+    for label in ${labels}
+    do
+      labelname=$(basename ${label})
+      if [[ ! -s output/labels/QC/${subjectname}_${labelname}.jpg ]]
+      then
+        echo mb_qc.sh ${subject} output/labels/majorityvote/${subjectname}_$(echo $labelname | sed -E 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo $subjectname | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') \
+            output/labels/QC
+        debug mb_qc.sh ${subject} output/labels/majorityvote/${subjectname}_$(echo $labelname | sed -E 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo $subjectname | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') \
+            output/labels/QC
+      fi
+    done | qbatch ${dryrun} -j 2 -c 1000 --depend ${datetime}-mb_vote-${subjectname} --jobname ${datetime}-mb_qc-${subjectname} --walltime 0:30:00 -
+  done
+}
+
 stage_cleanup () {
   #Tar and delete intermediate files
   info "Calculating tarring and delete cleanup jobs"

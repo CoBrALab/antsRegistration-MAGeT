@@ -110,7 +110,7 @@ read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
 
   Invocation: mb.sh [options] -- [stage 1] [stage 2] ... [stage N]
 
-  Standard stages: template, subject, resample, vote, run (template, subject, resample, vote)
+  Standard stages: template, subject, resample, vote, run (template, subject, resample, vote, qc)
   Multiatlas stages: multiatlas-resample, multiatlas-vote, multiatlas (template, multiatlas-resample, multiatlas-vote)
   Other stages: init, status, cleanup
   Multiple commands will run multiple stages. Order is not checked.

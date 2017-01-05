@@ -196,6 +196,9 @@ do
       ;;&
     vote|run)
       stage_vote
+      ;;&
+    qc|run)
+      stage_qc
       exit 0
       ;;
     cleanup)
