@@ -9,9 +9,9 @@ stage_init () {
 stage_estimate () {
   #Function estimates the memory requirements for doing registrations based on
   #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels + c
-  local a=6.820853e-07
-  local b=5.455959e-08
-  local c=1.364185e-01
+  local a=5.454998e-07
+  local b=6.458353e-08
+  local c=1.305710e-01
 
   scaling_factor=${arg_f}
 
@@ -33,9 +33,9 @@ stage_estimate () {
   template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor}))))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
-  local d=9.431370e-04
-  local e=5.159085e-06
-  local f=3.119656e+02
+  local d=3.763172e-04
+  local e=3.871282e-06
+  local f=4.223281e+03
   local atlas_template_walltime_seconds
   atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor})))")
   local template_subject_walltime_seconds
