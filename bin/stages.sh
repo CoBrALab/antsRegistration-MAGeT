@@ -242,6 +242,7 @@ stage_vote () {
 stage_qc () {
   #Voting
   info "Computing QC Images"
+  mkdir -p output/labels/QC
   for subject in ${subjects}
   do
     subjectname=$(basename ${subject})
