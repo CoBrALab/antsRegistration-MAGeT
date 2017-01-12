@@ -17,7 +17,7 @@ templatename=$(basename $template)
 if [[ ${subjectname} == "${templatename}" ]]
 then
 antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
-    -i $(echo $atlas | sed -E 's/(t1|T1W|t2).*')${labelname} \
+    -i $(echo $atlas | sed -E 's/(t1|T1W|t2).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-${labelname} \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm
