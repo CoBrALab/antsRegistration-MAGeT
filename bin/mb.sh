@@ -54,7 +54,7 @@ fi
 models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr -o -name '*_T1w.nii.gz'' 2> /dev/null || true)
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
-labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -E 's/(t1|T1W).*/label\*/g') | sed 's/input.*label/label/g' || true)
+labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -E 's/(t1|T1w|t2|T2w).*/label\*/g') | sed 's/input.*label/label/g' || true)
 
 
 #Sanity Check on inputs

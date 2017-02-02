@@ -17,14 +17,14 @@ templatename=$(basename $template)
 if [[ ${subjectname} == "${templatename}" ]]
 then
 antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
-    -i $(echo $atlas | sed -E 's/(t1|T1W|t2).*//g')${labelname} \
+    -i $(echo $atlas | sed -E 's/(t1|T1w|t2|T2w).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-${labelname} \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm
 else
 #Transforms are applied like matrix algebra, last transform on the command line is applied first
 antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
-    -i $(echo $atlas | sed -E 's/(t1|T1W|t2).*//g')${labelname} \
+    -i $(echo $atlas | sed -E 's/(t1|T1w|t2|T2w).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-${labelname} \
     -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}1_NL.xfm \
     -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \
