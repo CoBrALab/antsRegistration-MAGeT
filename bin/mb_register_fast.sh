@@ -6,8 +6,8 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
 movingfile=$1
 fixedfile=$2
 outputdir=$3
-movingmask=$(dirname $movingfile)/$(basename $movingfile | sed -e 's/_t1\./_mask./g' || true)
-fixedmask=$(dirname $fixedfile)/$(basename $fixedfile | sed  -e 's/_t1\./_mask./g' || true)
+movingmask=$(dirname $movingfile)/$(basename $movingfile | sed -r -e 's/_(t1|T1w|t2|T2w)\./_mask./g' || true)
+fixedmask=$(dirname $fixedfile)/$(basename $fixedfile | sed  -r -e 's/_(t1|T1w|t2|T2w)\./_mask./g' || true)
 
 fixed_scaling=$(python -c "print(1.0/min(($(PrintHeader $fixedfile 1 | sed 's/x/\,/g'))))")
 
