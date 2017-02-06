@@ -16,8 +16,8 @@ EOF
 
 ConvertImage 3 $imagefile $tmpdir/image.nii.gz
 ConvertScalarImageToRGB 3 $labelfile $tmpdir/label.nii.gz none custom <(echo "$LUT") 0 255 0 255
-CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_t.jpg -f 0x1 -d z -x $labelfile -p mask+10
-CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_s.jpg -f 0x1 -d x -x $labelfile -p mask+10
-CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_c.jpg -f 0x1 -d y -x $labelfile -p mask+10
+CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_t.jpg -f 0x1 -d z
+CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_s.jpg -f 0x1 -d x
+CreateTiledMosaic -i $tmpdir/image.nii.gz -r $tmpdir/label.nii.gz -a 0.4 -o $outputdir/$(basename $imagefile)-$(basename $labelfile)_c.jpg -f 0x1 -d y
 
 rm -r $tmpdir
