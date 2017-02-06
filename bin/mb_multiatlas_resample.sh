@@ -13,7 +13,7 @@ templatename=$(basename $template)
 
 #Transforms are applied like matrix algebra, last transform on the command line is applied first
 antsApplyTransforms -d 3 ${MB_VERBOSE:-} --interpolation GenericLabel -r ${template} \
-    -i $(echo $atlas | sed -E "s/t1\.(nii|nii\.gz|mnc)/${labelname}/g") \
+    -i $(echo $atlas | sed -r 's/(t1|T1w|t2|T2w).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${labelname} \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm
