@@ -15,9 +15,68 @@ export LC_MEASUREMENT=C
 export LC_IDENTIFICATION=C
 export LC_ALL=C
 
-source header.sh
-source stages.sh
+read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
+  -s --subject     [arg] Specific subject files to process.
+  -v --verbose           Enable verbose mode for all scripts.
+  -d --debug             Enables debug mode.
+  -h --help              This help page.
+  -n --dry-run           Don't submit any jobs.
+  -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
+  -f --factor      [arg] Scaling factor for time and memory estimates. Default="1.15"
+EOF
 
+read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
+  MAGeTBrain implementation using ANTs
+  Supports MINC and NIFTI input files (ANTs must be built with MINC support)
+
+  Invocation: mb.sh [options] -- [stage 1] [stage 2] ... [stage N]
+
+  Standard stages: template, subject, resample, vote, run (template, subject, resample, vote)
+  Multiatlas stages: multiatlas-resample, multiatlas-vote, multiatlas (template, multiatlas-resample, multiatlas-vote)
+  Other stages: init, status, cleanup
+  Multiple commands will run multiple stages. Order is not checked.
+EOF
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/header.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stages.sh"
+
+### Command-line argument switches (like -d for debugmode, -h for showing helppage)
+##############################################################################
+
+# debug mode
+if [ "${arg_d:?}" = "1" ]; then
+  set -o xtrace
+  LOG_LEVEL="7"
+fi
+
+# verbose mode
+if [ "${arg_v:?}" = "1" ]; then
+  #set -o verbose
+  export MB_VERBOSE='--verbose'
+else
+  export MB_VERBOSE=''
+fi
+
+# dry-run mode
+if [ "${arg_n:?}" = "1" ]; then
+  dryrun='-n'
+else
+  dryrun=''
+fi
+
+# help mode
+if [[ "${arg_h:?}" = "1" ]]; then
+  # Help exists with code 1
+  help "Help using ${0}"
+fi
+
+### Runtime
+##############################################################################
+
+function cleanup_before_exit () {
+  info "Cleaning up. Done"
+}
+trap cleanup_before_exit EXIT
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
 datetime=T$(date -u +%F_%H-%M-%S)
