@@ -142,6 +142,11 @@ then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
 
+if [[ $(( $(find input/atlas -maxdepth 1 -name '*label*' | wc -l) % $(echo ${atlases} | wc -w) )) -ne 0 ]]
+then
+  error "Unbalanced number of label files vs atlases, please ensure one label per type per atlas" && exit 1
+fi
+
 #Sanity check on Analyze files, check that a matching img file exists
 if [[ ${atlases} =~ "hdr" ]]
 then
