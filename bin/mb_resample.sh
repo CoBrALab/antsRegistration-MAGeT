@@ -8,23 +8,23 @@ labelname=$1
 atlas=$2
 template=$3
 subject=$4
-subjectname=$(basename $subject)
-atlasname=$(basename $atlas)
-templatename=$(basename $template)
+subjectname=$(basename ${subject})
+atlasname=$(basename ${atlas})
+templatename=$(basename ${template})
 
 
 #Check for subjectname == $templatename, if so, we skipped that registration, so don't apply those transforms
 if [[ ${subjectname} == "${templatename}" ]]
 then
 antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
-    -i $(echo $atlas | sed -r 's/(t1|T1w|t2|T2w).*//g')${labelname} \
+    -i $(echo ${atlas} | sed -r 's/(t1|T1w|t2|T2w).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-${labelname} \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm \
     -t output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm
 else
 #Transforms are applied like matrix algebra, last transform on the command line is applied first
 antsApplyTransforms -d 3  ${MB_VERBOSE:-} --interpolation GenericLabel -r ${subject} \
-    -i $(echo $atlas | sed -r 's/(t1|T1w|t2|T2w).*//g')${labelname} \
+    -i $(echo ${atlas} | sed -r 's/(t1|T1w|t2|T2w).*//g')${labelname} \
     -o /tmp/${atlasname}-${templatename}-${subjectname}-${labelname} \
     -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}1_NL.xfm \
     -t output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm \

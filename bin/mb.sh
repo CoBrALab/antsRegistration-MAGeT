@@ -79,7 +79,7 @@ function cleanup_before_exit () {
 trap cleanup_before_exit EXIT
 
 #All jobs are prefixed with a date-time in ISO format(to the minute) so you can submit multiple jobs at once
-datetime=T$(date -u +%F_%H-%M-%S)
+__datetime=T$(date -u +%F_%H-%M-%S)
 
 #If the commandlist is empty, assume the command is "run"
 if [[ $# -lt 1 ]]
@@ -89,7 +89,7 @@ else
     commandlist="$*"
 fi
 
-if [[ $commandlist =~ "init" ]]
+if [[ ${commandlist} =~ "init" ]]
 then
   stage_init
   exit 0
@@ -229,13 +229,13 @@ then
 fi
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
-[[ $commandlist =~ "status" ]] && exit 0
+[[ ${commandlist} =~ "status" ]] && exit 0
 
-for stage in $commandlist
+for stage in ${commandlist}
 do
   case ${stage} in
     template|subject|multiatlas|run)
-      if [[ $QBATCH_SYSTEM != "local" ]]; then
+      if [[ ${QBATCH_SYSTEM} != "local" ]]; then
         stage_estimate
       else
         qbatch_atlas_template_opts=""
