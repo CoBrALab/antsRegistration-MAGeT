@@ -264,10 +264,10 @@ stage_cleanup () {
   #Tar and delete intermediate files
   info "Calculating tarring and delete cleanup jobs"
 cat <<- EOF | qbatch ${dryrun} --walltime 8:00:00 --depend "${__datetime}-mb*" -
-tar -I pigz -cf output/transforms/atlas-template.tar.gz output/transforms/atlas-template && rm -rf output/transforms/atlas-template
-tar -I pigz -cf output/transforms/template-subject.tar.gz output/transforms/template-subject && rm -rf output/transforms/template-subject
-tar -I pigz -cf output/labels/candidates.tar.gz output/labels/candidates && rm -rf output/labels/candidates
-if [[ -d output/multiatlas/labels/candidates ]]; then tar -I pigz -cf output/labels/candidates.tar.gz output/multiatlas/labels/candidates && rm -rf output/multiatlas/labels/candidates; fi
+tar -cvf output/transforms/atlas-template.tar.gz output/transforms/atlas-template && rm -rf output/transforms/atlas-template
+tar -cvf output/transforms/template-subject.tar.gz output/transforms/template-subject && rm -rf output/transforms/template-subject
+tar -cvf output/labels/candidates.tar.gz output/labels/candidates && rm -rf output/labels/candidates
+if [[ -d output/multiatlas/labels/candidates ]]; then tar -cvf output/labels/candidates.tar.gz output/multiatlas/labels/candidates && rm -rf output/multiatlas/labels/candidates; fi
 EOF
 
 }
