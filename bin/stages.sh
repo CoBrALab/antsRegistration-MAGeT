@@ -116,7 +116,6 @@ stage_register_atlas_template () {
 stage_multiatlas_resample () {
   debug "Setting up Multiatlas/Template Output Directories"
   mkdir -p output/multiatlas/labels/candidates
-  mkdir -p output/multiatlas/labels/majorityvote
   for template in ${templates}
   do
     mkdir -p output/multiatlas/labels/candidates/$(basename ${template})
@@ -143,15 +142,16 @@ stage_multiatlas_resample () {
 
 stage_multiatlas_vote () {
   info "Computing Multiatlas/Template Votes"
+  mkdir -p output/multiatlas/labels/majorityvote
   for template in ${templates}
   do
     local templatename=$(basename ${template})
     for label in ${labels}
     do
       local labelname=$(basename ${label})
-      if [[ ! -s output/multiatlas/labels/majorityvote/${templatename}_${label} ]]
+      if [[ ! -s output/multiatlas/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
       then
-        local majorityvotingcmd="ImageMath 3 output/multiatlas/labels/majorityvote/${templatename}_${label} MajorityVoting"
+        local majorityvotingcmd="mb_multiatlas_vote.sh ${labelname} ${subject}"
         for atlas in ${atlases}
         do
           local atlasname=$(basename ${atlas})
