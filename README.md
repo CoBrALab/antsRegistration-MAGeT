@@ -60,9 +60,10 @@ One such recommended pipeline based on the MINC tools is available at
 <https://github.com/CobraLab/minc-bpipe-library>. Subject input volumes
 should be corrected but otherwise in native (or otherwise non volumetrically
 deformed) space, in order to ensure label volumes provide real-world measures.
-MAGeTbrain was tested and optimized on 1x1x1mm isotropic MPRAGE subject data.
-It has been very successfully used on higher resolution data and on other
-contrast types but may require tweaking of time/memory estimates.
+Subject scans must all be oriented in the same manner for affine registration to
+succeed. MAGeTbrain was tested and optimized on 1x1x1 mm isotropic MPRAGE
+subject data. It has been very successfully used on higher resolution data and
+on other contrast types but may require tweaking of time/memory estimates.
 
 ## How to run antsRegistration-MAGeT on SciNet
 
@@ -78,7 +79,7 @@ contrast types but may require tweaking of time/memory estimates.
 > mb.sh -- run
 2016-06-21 14:32:53 UTC [     info] Found:
 2016-06-21 14:32:53 UTC [     info]   5 atlases in input/atlas
-2016-06-21 14:32:53 UTC [     info]   1 labels in input/atlas
+2016-06-21 14:32:53 UTC [     info]   1 labels per atlas in input/atlas
 2016-06-21 14:32:53 UTC [     info]   13 templates in input/template
 2016-06-21 14:32:53 UTC [     info]   13 subjects in input/subject
 2016-06-21 14:32:53 UTC [     info]   0 models in input/models
@@ -200,12 +201,11 @@ Using a brain or ROI mask provides a number a number of potential benefits,
 improved registrations and reduction in memory requirements, although these
 benefits have not been throughly examined empirically.
 
-If the masks are supplied and the ``--reg-command mb_register_masked.sh``
-option is specified, affine registrations will first be done unmasked and then
-the last affine stage and non-linear stage will be done with the mask applied.
-If an ROI mask is used, please ensure that your labels of interest lie within
-the ROI, otherwise the non-linear registrations will never be computed for your
-labels.
+If the masks are supplied and the option is specified, affine registrations
+will first be done unmasked and then the last affine stage and non-linear
+stage will be done with the mask applied. If an ROI mask is used, please
+ensure that your labels of interest lie within the ROI, otherwise the
+non-linear registrations will never be computed for your labels.
 
 ### Slabs
 
@@ -213,6 +213,23 @@ MAGeTbrain should successfully operate using slabs rather than whole brains as
 inputs. It may benefit from an ROI mask defining the boundary of the slab in
 order to prevent non-linear registrations from wasting cycles and avoiding
 possible sharp-edge effects on the smooth registration fields.
+
+### Pathological populations
+
+Subject populations with significant pathology or structural abnormalities
+pose particular problems in nonlinear registrations as structural correspondence
+is no longer guaranteed. In these cases, there are a few suggested methods to
+improve results. First, choose as templates subjects that have a "reasonable"
+level of pathology, rather than extreme examples. These templates can help to
+"bridge the gap" between atlases and subjects where large deformations are needed.
+
+Secondly, one can attempt to find the "best" templates via application of the
+``multiatlas`` mode. These may in fact correspond with the same subjects as
+suggested above.
+
+Finally, special populations have been segmented with MAGeTbrain by (semi)manual
+segmentation of some subjects and their use as atlases. This has been particularly
+successful with neonates.
 
 ## How to install/configure MAGeTbrain to run elsewhere
 
