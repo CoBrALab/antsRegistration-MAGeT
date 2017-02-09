@@ -212,7 +212,7 @@ done
 #Status printout
 info "Found:"
 info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
-info "  $(echo ${labels} | wc -w) labels in input/atlas"
+info "  $(echo ${labels} | wc -w) labels per atlas in input/atlas"
 info "  $(echo ${templates} | wc -w) templates in input/template"
 info "  $(echo ${subjects} | wc -w) subjects in input/subject"
 info "  $(echo ${models} | wc -w) models in input/models"
