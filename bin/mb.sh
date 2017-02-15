@@ -238,8 +238,8 @@ do
       if [[ ${QBATCH_SYSTEM} != "local" ]]; then
         stage_estimate
       else
-        qbatch_atlas_template_opts=""
-        qbatch_template_subject_opts=""
+        __qbatch_atlas_template_opts=""
+        __qbatch_template_subject_opts=""
       fi
       ;;&
     template|multiatlas|run)
