@@ -37,7 +37,9 @@ read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
   Multiple commands will run multiple stages. Order is not checked.
 EOF
 
+# shellcheck source=header.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/header.sh"
+# shellcheck source=stages.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stages.sh"
 
 ### Command-line argument switches (like -d for debugmode, -h for showing helppage)
