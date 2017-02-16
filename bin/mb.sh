@@ -16,13 +16,14 @@ export LC_IDENTIFICATION=C
 export LC_ALL=C
 
 read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
-  -s --subject     [arg] Specific subject files to process.
-  -v --verbose           Enable verbose mode for all scripts.
-  -d --debug             Enables debug mode.
-  -h --help              This help page.
-  -n --dry-run           Don't submit any jobs.
-  -r --reg-command [arg] Provide an alternative registration command. Default="mb_register.sh"
-  -f --factor      [arg] Scaling factor for time and memory estimates. Default="1.15"
+  -s --subject         [arg]  Specific subject files to process.
+  -v --verbose                Enable verbose mode for all scripts.
+  -d --debug                  Enables debug mode.
+  -h --help                   This help page.
+  -n --dry-run                Don't submit any jobs.
+  -r --reg-command     [arg]  Provide an alternative registration command.  Default="mb_register.sh"
+  -m --mem-factor      [arg]  Scaling factor for memory estimates.          Default="1.15"
+  -w --walltime-factor [arg]  Scaling factor for time estimates.            Default="1.15"
 EOF
 
 read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
@@ -71,6 +72,9 @@ if [[ "${arg_h:?}" = "1" ]]; then
   # Help exists with code 1
   help "Help using ${0}"
 fi
+
+__memory_scaling_factor=${arg_m}
+__walltime_scaling_factor=${arg_w}
 
 ### Runtime
 ##############################################################################

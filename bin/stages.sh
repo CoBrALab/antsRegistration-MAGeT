@@ -13,8 +13,6 @@ stage_estimate () {
   local b=6.458353e-08
   local c=1.305710e-01
 
-  local scaling_factor=${arg_f}
-
   info "Checking Resolution of First Atlas"
   local atlas_voxels=$(( $(PrintHeader $(ls -LS ${atlases} | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${atlas_voxels} voxels"
@@ -27,19 +25,19 @@ stage_estimate () {
 
   notice "MAGeTbrain estimates walltime and memory based on files with the largest file size, if some files are uncompressed, this estimate may be incorrect"
 
-  local  atlas_template_memory
-  atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${scaling_factor}))))")
-  local  template_subject_memory
-  template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${scaling_factor}))))")
+  local atlas_template_memory
+  atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${__memory_scaling_factor}))))")
+  local template_subject_memory
+  template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${__memory_scaling_factor}))))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
   local d=3.763172e-04
   local e=3.871282e-06
   local f=4.223281e+03
   local atlas_template_walltime_seconds
-  atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${scaling_factor})))")
+  atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${__walltime_scaling_factor})))")
   local template_subject_walltime_seconds
-  template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${scaling_factor})))")
+  template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${__walltime_scaling_factor})))")
 
   #A little bit of special casing for SciNet
   if [[ $(printenv) =~ SCINET ]]
