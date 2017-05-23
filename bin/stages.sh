@@ -147,9 +147,9 @@ stage_multiatlas_vote () {
     for label in ${labels}
     do
       local labelname=$(basename ${label})
-      if [[ ! -s output/multiatlas/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
+      if [[ ! -s output/multiatlas/labels/majorityvote/${templatename}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${templatename} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
       then
-        local majorityvotingcmd="mb_multiatlas_vote.sh ${labelname} ${subject}"
+        local majorityvotingcmd="mb_multiatlas_vote.sh ${labelname} ${template}"
         for atlas in ${atlases}
         do
           local atlasname=$(basename ${atlas})
