@@ -47,11 +47,11 @@ stage_estimate () {
     if [[ ${atlas_template_memory} -gt 62 ]]
     then
       info "Submitting template jobs to 128GB nodes"
-      __qbatch_atlas_template_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( atlas_template_walltime_seconds / 2 ))"
+      __qbatch_atlas_template_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($atlas_template_walltime_seconds / 1.5))" )"
     elif [[ ${atlas_template_memory} -gt 30 ]]
     then
       info "Submitting template jobs to 64GB nodes"
-      __qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( atlas_template_walltime_seconds / 2 ))"
+      __qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(python -c "print(int($atlas_template_walltime_seconds / 1.5))")"
     elif [[ ${atlas_template_memory} -gt 14 ]]
     then
       info "Submitting template jobs to 32GB nodes"
@@ -68,11 +68,11 @@ stage_estimate () {
     if [[ ${template_subject_memory} -gt 62 ]]
     then
       info "Submitting subject jobs to 128GB nodes"
-      __qbatch_template_subject_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( template_subject_walltime_seconds / 2 ))"
+      __qbatch_template_subject_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($template_subject_walltime_seconds / 1.5))")"
     elif [[ ${template_subject_memory} -gt 30 ]]
     then
       info "Submitting subject jobs to 64GB nodes"
-      __qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(( template_subject_walltime_seconds / 2 ))"
+      __qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($template_subject_walltime_seconds / 1.5))" )"
     elif [[ ${template_subject_memory} -gt 14 ]]
     then
       info "Submitting subject jobs to 32GB nodes"
