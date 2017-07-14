@@ -24,6 +24,7 @@ read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -r --reg-command     [arg]  Provide an alternative registration command.  Default="mb_register.sh"
   -m --mem-factor      [arg]  Scaling factor for memory estimates.          Default="1.15"
   -w --walltime-factor [arg]  Scaling factor for time estimates.            Default="1.15"
+  -l --label-masking          Use atlas labels to focus registration.
 EOF
 
 read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
@@ -65,6 +66,13 @@ if [ "${arg_n:?}" = "1" ]; then
   dryrun='-n'
 else
   dryrun=''
+fi
+
+# label masking
+if [ "${arg_l:?}" = "1" ]; then
+  __mb_label_masking='1'
+else
+  __mb_label_masking=''
 fi
 
 # help mode

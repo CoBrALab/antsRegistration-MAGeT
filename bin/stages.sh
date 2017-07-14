@@ -102,10 +102,16 @@ stage_register_atlas_template () {
     for atlas in ${atlases}
     do
       local atlasname=$(basename ${atlas})
-      if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}0_GenericAffine.xfm ]]
+      if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm ]]
       then
-        debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
-        echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
+        if [[ -n ${__mb_label_masking} ]]
+        then
+          debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} $(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*
+          echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} $(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*
+        else
+          debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
+          echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
+        fi
       fi
     done | qbatch ${dryrun} --jobname ${__datetime}-mb_register_atlas_template-${templatename} ${__qbatch_atlas_template_opts} -
   done
@@ -174,7 +180,7 @@ stage_register_template_subject () {
     do
       local templatename=$(basename ${template})
       #If subject and template name are the same, skip the registration step since it should be identity
-      if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}0_GenericAffine.xfm) && (${subjectname} != "${templatename}") ]]
+      if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}1_NL.xfm) && (${subjectname} != "${templatename}") ]]
       then
         debug ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
         echo ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
