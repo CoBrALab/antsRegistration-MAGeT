@@ -205,7 +205,7 @@ stage_resample () {
           fi
         done
       done
-    done | qbatch ${dryrun} -j 2 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --depend "${__datetime}-mb_register_template_subject-${subjectname}*" --jobname ${__datetime}-mb_resample-${subjectname} --walltime 1:00:00 -
+    done | qbatch ${dryrun} -j 2 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --depend "${__datetime}-mb_register_template_subject-${subjectname}*" --jobname ${__datetime}-mb_resample-${subjectname} --walltime 6:00:00 -
   done
 }
 
@@ -254,7 +254,7 @@ stage_qc () {
         debug mb_qc.sh ${subject} output/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') \
             output/labels/QC
       fi
-    done | qbatch ${dryrun} -j 2 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --jobname ${__datetime}-mb_qc-${subjectname} --walltime 0:30:00 -
+    done | qbatch ${dryrun} -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --jobname ${__datetime}-mb_qc-${subjectname} --walltime 0:30:00 -
   done
 }
 
