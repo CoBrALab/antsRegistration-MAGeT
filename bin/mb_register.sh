@@ -60,7 +60,7 @@ fi
 if [[ ! -e ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm ]]
 then
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile}),$outputdir/affine.mnc] \
+  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
   --use-histogram-matching 0 \
   --initial-moving-transform [${fixedfile},${movingfile},1] \
   --transform Rigid[0.1]      --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.25] --convergence [2000x1000x500x250x125,1e-6,10,1] --shrink-factors ${sub8mm}x${sub8mm}x${sub4mm}x${sub2mm}x${sub1mm} --smoothing-sigmas ${blur16mm}x${blur8mm}x${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
@@ -72,7 +72,7 @@ fi
 
 
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile}),$outputdir/nonlinear.mnc] \
+  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
   --use-histogram-matching 0 \
   --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
   --transform SyN[0.25,2,0] --metric CC[${fixedfile},${movingfile},1,4] --convergence [6400x3200x1600x800x400x200x100x0,1e-6,10] \
