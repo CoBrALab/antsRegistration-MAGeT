@@ -17,6 +17,7 @@ export LC_ALL=C
 
 read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -s --subject         [arg]  Specific subject files to process.
+  -t --template        [arg]  Specific template files to process.
   -v --verbose                Enable verbose mode for all scripts.
   -d --debug                  Enables debug mode.
   -h --help                   This help page.
@@ -118,11 +119,16 @@ atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -
 if [[ ! -z "${arg_s:-}" ]]
 then
   subjects=${arg_s}
-  templates=${arg_s}
   info "Specific subject(s) specified ${subjects}"
-  info "Specific template(s) specified ${templates}"
 else
   subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+fi
+
+if [[ ! -z "${arg_t:-}" ]]
+then
+  templates=${arg_t}
+  info "Specific template(s) specified ${templates}"
+else
   templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
 fi
 
