@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+set -x
+
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
 
 tmpdir=$(mktemp -d)
@@ -42,7 +44,8 @@ if [[ ${#labelfiles[@]} -gt 0 ]]
 then
     if [[ ${#labelfiles[@]} -eq 1 ]]
     then
-        cp "${labelfiles[@]}" ${tmpdir}/mergedmask${inputext}
+        inputext=$(basename ${labelfiles[0]} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
+        cp ${labelfiles[0]} ${tmpdir}/mergedmask${inputext}
     else
         ImageMath 3 ${tmpdir}/mergedmask${inputext} max "${labelfiles[@]}"
     fi
