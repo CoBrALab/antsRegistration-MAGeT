@@ -202,11 +202,11 @@ improved registrations and reduction in memory requirements, although these
 benefits have not been throughly examined empirically.
 
 Testing thus far has indicated masking is most effective if used to remove
-non-brain tissues or areas of interest, rather than focusing registraitons. As
+non-brain tissues or areas of interest, rather than focusing registrations. As
 such it is recommended to skull-strip input scans. Particular attention should
 be paid to cerebllar regions to not lose and cerebellum volume after cropping.
 
-If enabled with the "label maksing" option, atlas to template registrations
+If enabled with the "label maksing" option ``-l``, atlas to template registrations
 will use the input labels to focus the registration, reducing runtime and
 possibly improving registration quality, depending upon anatomical differences.
 
