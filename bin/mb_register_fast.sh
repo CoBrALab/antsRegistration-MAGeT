@@ -10,6 +10,7 @@ fixedfile=$2
 outputdir=$3
 shift 3
 
+inputext=$(basename $movingfile | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
 labelfiles=( "$@" )
 
 fixed_scaling=$(python -c "print(1.0/min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
@@ -41,18 +42,18 @@ if [[ ${#labelfiles[@]} -gt 0 ]]
 then
     if [[ ${#labelfiles[@]} -eq 1 ]]
     then
-        cp ${labelfiles[@]} $tmpdir/mergedmask.mnc
+        cp "${labelfiles[@]}" ${tmpdir}/mergedmask${inputext}
     else
-        ImageMath 3 $tmpdir/mergedmask.mnc max ${labelfiles[@]}
+        ImageMath 3 ${tmpdir}/mergedmask${inputext} max "${labelfiles[@]}"
     fi
-    ThresholdImage 3 $tmpdir/mergedmask.mnc $tmpdir/mergedmask2.mnc 0.5 255 1 0
-    iMath 3 $tmpdir/mergedmask2.mnc MD $tmpdir/mergedmask2.mnc 6 1 1 1
-    ExtractRegionFromImageByMask 3 $tmpdir/mergedmask2.mnc $tmpdir/cropmask.mnc $tmpdir/mergedmask2.mnc 1 30
-    ThresholdImage 3 $tmpdir/cropmask.mnc $tmpdir/cropmask.mnc 0 255 1 1
-    antsApplyTransforms -d 3 -i $tmpdir/cropmask.mnc -r $tmpdir/mergedmask.mnc -n NearestNeighbor -o $tmpdir/cropmask.mnc
-    ImageMath 3 $tmpdir/regmask.mnc max $tmpdir/mergedmask2.mnc $tmpdir/cropmask.mnc
-    finalaffine1="--transform Affine[0.1]     --metric GC[${fixedfile},${movingfile},1,32,Regular,1] --convergence [250x125x50,1e-6,10,1] --shrink-factors ${sub2mm}x${sub1mm}x1  --smoothing-sigmas ${blur2mm}x${blur1mm}x${blur05mm}mm --masks [NULL,$tmpdir/regmask.mnc]"
-    finalaffine2="--transform Affine[0.1]     --metric GC[${fixedfile},${movingfile},1,32,Regular,1] --convergence [500x250x125x50,1e-7,10,1] --shrink-factors ${sub2mm}x${sub2mm}x${sub1mm}x1 --smoothing-sigmas ${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,$tmpdir/mergedmask2.mnc]"
+    ThresholdImage 3 ${tmpdir}/mergedmask${inputext} ${tmpdir}/mergedmask2${inputext} 0.5 255 1 0
+    iMath 3 ${tmpdir}/mergedmask2${inputext} MD ${tmpdir}/mergedmask2${inputext} 6 1 1 1
+    ExtractRegionFromImageByMask 3 ${tmpdir}/mergedmask2${inputext} ${tmpdir}/cropmask${inputext} ${tmpdir}/mergedmask2${inputext} 1 30
+    ThresholdImage 3 ${tmpdir}/cropmask${inputext} ${tmpdir}/cropmask${inputext} 0 255 1 1
+    antsApplyTransforms -d 3 -i ${tmpdir}/cropmask${inputext} -r ${tmpdir}/mergedmask${inputext} -n NearestNeighbor -o ${tmpdir}/cropmask${inputext}
+    ImageMath 3 ${tmpdir}/regmask${inputext} max ${tmpdir}/mergedmask2${inputext} ${tmpdir}/cropmask${inputext}
+    finalaffine1="--transform Affine[0.1]     --metric GC[${fixedfile},${movingfile},1,32,Regular,1] --convergence [250x125x50,1e-6,10,1] --shrink-factors ${sub2mm}x${sub1mm}x1  --smoothing-sigmas ${blur2mm}x${blur1mm}x${blur05mm}mm --masks [NULL,${tmpdir}/regmask${inputext}]"
+    finalaffine2="--transform Affine[0.1]     --metric GC[${fixedfile},${movingfile},1,32,Regular,1] --convergence [500x250x125x50,1e-7,10,1] --shrink-factors ${sub2mm}x${sub2mm}x${sub1mm}x1 --smoothing-sigmas ${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,${tmpdir}/mergedmask2${inputext}]"
 else
     finalaffine1="--transform Affine[0.1]     --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [250x125x0,1e-6,10,1] --shrink-factors ${sub2mm}x${sub1mm}x1  --smoothing-sigmas ${blur2mm}x${blur1mm}x${blur05mm}mm --masks [NULL,NULL]"
     finalaffine2=""
@@ -82,6 +83,6 @@ antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --v
   --smoothing-sigmas ${blur16mm}x${blur14mm}x${blur12mm}x${blur10mm}x${blur8mm}x${blur6mm}x${blur4mm}x0mm --masks [NULL,$tmpdir/regmask.mnc] \
   --transform SyN[0.25,3,0] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [400x200x100x50x25x20,1e-6,10] \
   --shrink-factors ${sub4mm}x${sub3mm}x${sub2mm}x${sub1mm}x${sub1mm}x1 \
-  --smoothing-sigmas ${blur4mm}x${blur3mm}x${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,$tmpdir/regmask.mnc]
+  --smoothing-sigmas ${blur4mm}x${blur3mm}x${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,${tmpdir}/regmask${inputext}]
 
 rm -rf $tmpdir
