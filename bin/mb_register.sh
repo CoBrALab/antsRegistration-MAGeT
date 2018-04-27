@@ -50,6 +50,13 @@ then
     $(eval echo ${linear_steps})
 fi
 
+if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${inputext} ) && ( ${movingmask} != "NULL" ) ]]; then
+    antsApplyTransforms -d 3 -i ${movingmask} -o ${outputdir}/$(basename ${movingfile})_labelmask${inputext} \
+    -t ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm -r ${fixedfile} \
+    -n GenericLabel
+    fixedmask=${outputdir}/$(basename ${movingfile})_labelmask${inputext}
+fi
+
 nonlinear_steps=$(generate-iterations-SyN-fine.py ${minimum_resolution})
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
