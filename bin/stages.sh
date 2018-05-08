@@ -42,8 +42,8 @@ stage_estimate () {
   #A little bit of special casing for SciNet
   if [[ $(printenv) =~ niagara ]]
   then
-    __qbatch_atlas_template_opts="--walltime $(( atlas_template_walltime_seconds * 8 * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} ))"
-    __qbatch_template_subject_opts="--walltime $(( template_subject_walltime_seconds * 8 * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} ))"
+    __qbatch_atlas_template_opts="--walltime $(( atlas_template_walltime_seconds * 8 * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} / 60 ))"
+    __qbatch_template_subject_opts="--walltime $(( template_subject_walltime_seconds * 8 * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} / 60 ))"
   else
     # Assume QBATCH variables are set properly, scale memory and walltime according to QBATCH specifications
     __qbatch_atlas_template_opts="--mem $(( atlas_template_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( atlas_template_walltime_seconds * 8  * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} ))"
