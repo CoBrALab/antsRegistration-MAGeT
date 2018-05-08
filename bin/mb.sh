@@ -23,8 +23,8 @@ read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -h --help                   This help page.
   -n --dry-run                Don't submit any jobs. Useful with debug above.
   -r --reg-command     [arg]  Provide an alternative registration command.  Default="mb_register.sh"
-  -m --mem-factor      [arg]  Scaling factor for memory estimates.          Default="1.15"
-  -w --walltime-factor [arg]  Scaling factor for time estimates.            Default="1.15"
+  -m --mem-factor      [arg]  Scaling factor for memory estimates.          Default="1.10"
+  -w --walltime-factor [arg]  Scaling factor for time estimates.            Default="1.10"
   -l --label-masking          Use atlas labels to focus registration.
 EOF
 
