@@ -40,56 +40,14 @@ stage_estimate () {
   template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${__walltime_scaling_factor})))")
 
   #A little bit of special casing for SciNet
-  if [[ $(printenv) =~ SCINET ]]
+  if [[ $(printenv) =~ niagara ]]
   then
-
-    #Breakup chunks/parallel calls for scinet jobs
-    if [[ ${atlas_template_memory} -gt 62 ]]
-    then
-      info "Submitting template jobs to 128GB nodes"
-      __qbatch_atlas_template_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($atlas_template_walltime_seconds / 1.5))" )"
-    elif [[ ${atlas_template_memory} -gt 30 ]]
-    then
-      info "Submitting template jobs to 64GB nodes"
-      __qbatch_atlas_template_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $(python -c "print(int($atlas_template_walltime_seconds / 1.5))")"
-    elif [[ ${atlas_template_memory} -gt 14 ]]
-    then
-      info "Submitting template jobs to 32GB nodes"
-      __qbatch_atlas_template_opts="--pbs-nodes-spec m32g -c 1 -j 1  --ppj 8 --walltime ${atlas_template_walltime_seconds}"
-    elif [[ ${atlas_template_memory} -gt 7 ]]
-    then
-      info "Submitting template jobs to 16GB nodes"
-      __qbatch_atlas_template_opts="-c 1 -j 1 --ppj 8 --walltime ${atlas_template_walltime_seconds}"
-    else
-      info "Submitting template jobs to 16GB nodes, two commands in parallel"
-      __qbatch_atlas_template_opts="-c 2 -j 2 --ppj 8 --walltime $(( atlas_template_walltime_seconds * 2 ))"
-    fi
-
-    if [[ ${template_subject_memory} -gt 62 ]]
-    then
-      info "Submitting subject jobs to 128GB nodes"
-      __qbatch_template_subject_opts="--pbs-nodes-spec m128g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($template_subject_walltime_seconds / 1.5))")"
-    elif [[ ${template_subject_memory} -gt 30 ]]
-    then
-      info "Submitting subject jobs to 64GB nodes"
-      __qbatch_template_subject_opts="--pbs-nodes-spec m64g --queue sandy --ppj 16 -c 1 -j 1 --walltime $( python -c "print(int($template_subject_walltime_seconds / 1.5))" )"
-    elif [[ ${template_subject_memory} -gt 14 ]]
-    then
-      info "Submitting subject jobs to 32GB nodes"
-      __qbatch_template_subject_opts="--pbs-nodes-spec m32g -c 1 -j 1 --ppj 8 --walltime ${template_subject_walltime_seconds}"
-    elif [[ ${template_subject_memory} -gt 7 ]]
-    then
-      info "Submitting subject jobs to 16GB nodes"
-      __qbatch_template_subject_opts="-c 1 -j 1 --ppj 8 --walltime ${template_subject_walltime_seconds}"
-    else
-      info "Submitting subject jobs to 16GB nodes, two commands in parallel"
-      __qbatch_template_subject_opts="-c 2 -j 2 --ppj 8 --walltime  $(( template_subject_walltime_seconds * 2 ))"
-    fi
-
+    __qbatch_atlas_template_opts="--walltime $(( atlas_template_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    __qbatch_template_subject_opts="--walltime $(( template_subject_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"  
   else
     # Assume QBATCH variables are set properly, scale memory and walltime according to QBATCH specifications
-    __qbatch_atlas_template_opts="--mem $(( atlas_template_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( atlas_template_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
-    __qbatch_template_subject_opts="--mem $(( template_subject_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G  --walltime $(( template_subject_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKS:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    __qbatch_atlas_template_opts="--mem $(( atlas_template_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G --walltime $(( atlas_template_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
+    __qbatch_template_subject_opts="--mem $(( template_subject_memory * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))G  --walltime $(( template_subject_walltime_seconds * 8 / ${QBATCH_PPJ:-1} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_CORES:-${QBATCH_PPJ:-1}} ))"
   fi
 }
 
