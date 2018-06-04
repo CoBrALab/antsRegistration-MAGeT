@@ -65,27 +65,27 @@ fi
 
 if [[ ! -e ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm ]]
 then
-antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-  --use-histogram-matching 0 \
-  --initial-moving-transform [${fixedfile},${movingfile},1] \
-  --transform Rigid[0.1]      --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.25] --convergence [2000x1000x500x250x125,1e-6,10,1] --shrink-factors ${sub8mm}x${sub8mm}x${sub4mm}x${sub2mm}x${sub1mm} --smoothing-sigmas ${blur16mm}x${blur8mm}x${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
-  --transform Similarity[0.1] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.5] --convergence [1000x500x250x125,1e-6,10,1] --shrink-factors ${sub8mm}x${sub4mm}x${sub2mm}x${sub1mm} --smoothing-sigmas ${blur8mm}x${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
-  --transform Affine[0.1]     --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.75] --convergence [500x250x125,1e-6,10,1] --shrink-factors ${sub4mm}x${sub2mm}x${sub1mm}  --smoothing-sigmas ${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
-  ${finalaffine1} \
-  ${finalaffine2}
+    antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
+        --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
+        --use-histogram-matching 0 \
+        --initial-moving-transform [${fixedfile},${movingfile},1] \
+        --transform Rigid[0.1]      --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.25] --convergence [2000x1000x500x250x125,1e-6,10,1] --shrink-factors ${sub8mm}x${sub8mm}x${sub4mm}x${sub2mm}x${sub1mm} --smoothing-sigmas ${blur16mm}x${blur8mm}x${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
+        --transform Similarity[0.1] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.5] --convergence [1000x500x250x125,1e-6,10,1] --shrink-factors ${sub8mm}x${sub4mm}x${sub2mm}x${sub1mm} --smoothing-sigmas ${blur8mm}x${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
+        --transform Affine[0.1]     --metric Mattes[${fixedfile},${movingfile},1,32,Regular,0.75] --convergence [500x250x125,1e-6,10,1] --shrink-factors ${sub4mm}x${sub2mm}x${sub1mm}  --smoothing-sigmas ${blur4mm}x${blur2mm}x${blur1mm}mm --masks [NULL,NULL] \
+        ${finalaffine1} \
+        ${finalaffine2}
 fi
 
 
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-  --use-histogram-matching 0 \
-  --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
-  --transform SyN[0.25,2,0] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [6400x3200x1600x800x400x200x100x0,1e-6,10] \
-  --shrink-factors ${sub8mm}x${sub7mm}x${sub6mm}x${sub5mm}x${sub4mm}x${sub4mm}x${sub4mm}x1 \
-  --smoothing-sigmas ${blur16mm}x${blur14mm}x${blur12mm}x${blur10mm}x${blur8mm}x${blur6mm}x${blur4mm}x0mm --masks [NULL,$tmpdir/regmask.mnc] \
-  --transform SyN[0.25,3,0] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [400x200x100x50x25x20,1e-6,10] \
-  --shrink-factors ${sub4mm}x${sub3mm}x${sub2mm}x${sub1mm}x${sub1mm}x1 \
-  --smoothing-sigmas ${blur4mm}x${blur3mm}x${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,${tmpdir}/regmask${inputext}]
+    --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
+    --use-histogram-matching 0 \
+    --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
+    --transform SyN[0.25,2,0] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [6400x3200x1600x800x400x200x100x0,1e-6,10] \
+    --shrink-factors ${sub8mm}x${sub7mm}x${sub6mm}x${sub5mm}x${sub4mm}x${sub4mm}x${sub4mm}x1 \
+    --smoothing-sigmas ${blur16mm}x${blur14mm}x${blur12mm}x${blur10mm}x${blur8mm}x${blur6mm}x${blur4mm}x0mm --masks [NULL,$tmpdir/regmask.mnc] \
+    --transform SyN[0.25,3,0] --metric Mattes[${fixedfile},${movingfile},1,32,Regular,1] --convergence [400x200x100x50x25x20,1e-6,10] \
+    --shrink-factors ${sub4mm}x${sub3mm}x${sub2mm}x${sub1mm}x${sub1mm}x1 \
+    --smoothing-sigmas ${blur4mm}x${blur3mm}x${blur2mm}x${blur1mm}x${blur05mm}x0mm --masks [NULL,${tmpdir}/regmask${inputext}]
 
 rm -rf $tmpdir

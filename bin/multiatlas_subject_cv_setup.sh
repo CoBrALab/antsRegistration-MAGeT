@@ -15,44 +15,44 @@ origpool=(input/atlas/*t1.mnc)
 
 if [[ $3 ]]
 then
-  targetdir=$3
+    targetdir=$3
 else
-  targetdir=.
+    targetdir=.
 fi
 
 i=0
 for subject in "${origpool[@]}"
 do
-  subjectname=$(basename $subject)
-  echo ${subjectname}
+    subjectname=$(basename $subject)
+    echo ${subjectname}
 
 
-  pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
+    pool=( "${origpool[@]::$i}" "${origpool[@]:$((i+1))}" )
 
-  for fold in $(seq ${nfolds})
-  do
-    #Shuffle inputs in a random list using sort
-    pool=($(printf "%s\n" "${pool[@]}" | sort -R))
-    #Since list is now random, slice array according to numbers provided before
-    atlases=("${pool[@]:0:${natlases}}")
-    #templates=("${pool[@]:$natlases}")
+    for fold in $(seq ${nfolds})
+    do
+        #Shuffle inputs in a random list using sort
+        pool=($(printf "%s\n" "${pool[@]}" | sort -R))
+        #Since list is now random, slice array according to numbers provided before
+        atlases=("${pool[@]:0:${natlases}}")
+        #templates=("${pool[@]:$natlases}")
 
-    #Setup folders for random run
-    folddir=${targetdir}/NFOLD_multiatlas_subject/${natlases}atlases_fold${fold}/${subjectname}
-    mkdir -p ${folddir}/input/{atlas,template}
-    mkdir -p ${folddir}/output/multiatlas/labels/majorityvote
+        #Setup folders for random run
+        folddir=${targetdir}/NFOLD_multiatlas_subject/${natlases}atlases_fold${fold}/${subjectname}
+        mkdir -p ${folddir}/input/{atlas,template}
+        mkdir -p ${folddir}/output/multiatlas/labels/majorityvote
 
-    #Link in precomputed transforms and candidate labels
-    ln -s "$(readlink -f output/transforms)" ${folddir}/output/transforms
-    ln -s "$(readlink -f output/multiatlas/labels/candidates)" ${folddir}/output/multiatlas/labels/candidates
+        #Link in precomputed transforms and candidate labels
+        ln -s "$(readlink -f output/transforms)" ${folddir}/output/transforms
+        ln -s "$(readlink -f output/multiatlas/labels/candidates)" ${folddir}/output/multiatlas/labels/candidates
 
-    #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
-    tmp=("${atlases[@]/_t1.mnc/*}")
-    ln -s ${tmp[@]} ${folddir}/input/atlas
-    ln -s ${subject} ${folddir}/input/template
-    (cd ${folddir}; mb.sh -- multiatlas-vote)
-  done
-  ((i++))
+        #Do a trick of replacing _t1.mnc with * to allow bash expansion to include all label files
+        tmp=("${atlases[@]/_t1.mnc/*}")
+        ln -s ${tmp[@]} ${folddir}/input/atlas
+        ln -s ${subject} ${folddir}/input/template
+        (cd ${folddir}; mb.sh -- multiatlas-vote)
+    done
+    ((i++))
 
 done
 multiatlas_subject_cv_collect.sh ${natlases}atlases_0templates.csv ${natlases}atlases ${targetdir} && rm -rf ${targetdir}/NFOLD_multiatlas_subject/${natlases}atlases_fold*

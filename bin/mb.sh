@@ -50,36 +50,36 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stages.sh"
 
 # debug mode
 if [ "${arg_d:?}" = "1" ]; then
-  set -o xtrace
-  LOG_LEVEL="7"
+    set -o xtrace
+    LOG_LEVEL="7"
 fi
 
 # verbose mode
 if [ "${arg_v:?}" = "1" ]; then
-  #set -o verbose
-  export MB_VERBOSE='--verbose'
+    #set -o verbose
+    export MB_VERBOSE='--verbose'
 else
-  export MB_VERBOSE=''
+    export MB_VERBOSE=''
 fi
 
 # dry-run mode
 if [ "${arg_n:?}" = "1" ]; then
-  dryrun='-n'
+    dryrun='-n'
 else
-  dryrun=''
+    dryrun=''
 fi
 
 # label masking
 if [ "${arg_l:?}" = "1" ]; then
-  __mb_label_masking='1'
+    __mb_label_masking='1'
 else
-  __mb_label_masking=''
+    __mb_label_masking=''
 fi
 
 # help mode
 if [[ "${arg_h:?}" = "1" ]]; then
-  # Help exists with code 1
-  help "Help using ${0}"
+    # Help exists with code 1
+    help "Help using ${0}"
 fi
 
 __memory_scaling_factor=${arg_m}
@@ -89,7 +89,7 @@ __walltime_scaling_factor=${arg_w}
 ##############################################################################
 
 function cleanup_before_exit () {
-  info "Cleaning up. Done"
+    info "Cleaning up. Done"
 }
 trap cleanup_before_exit EXIT
 
@@ -106,11 +106,11 @@ fi
 
 if [[ ${commandlist} =~ "init" ]]
 then
-  stage_init
-  exit 0
+    stage_init
+    exit 0
 elif [[ ! (-e input/atlas && -e input/template && -e input/subject )]]
 then
-  error "Error, input directories not found, run mb.sh -- init" && exit 1
+    error "Error, input directories not found, run mb.sh -- init" && exit 1
 fi
 
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
@@ -118,18 +118,18 @@ atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -
 
 if [[ ! -z "${arg_s:-}" ]]
 then
-  subjects=${arg_s}
-  info "Specific subject(s) specified ${subjects}"
+    subjects=${arg_s}
+    info "Specific subject(s) specified ${subjects}"
 else
-  subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+    subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
 fi
 
 if [[ ! -z "${arg_t:-}" ]]
 then
-  templates=${arg_t}
-  info "Specific template(s) specified ${templates}"
+    templates=${arg_t}
+    info "Specific template(s) specified ${templates}"
 else
-  templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
+    templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
 fi
 
 models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz' 2> /dev/null || true)
@@ -141,66 +141,66 @@ labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_
 #Sanity Check on inputs
 if [[ $(echo ${atlases} | wc -w) == 0 ]]
 then
-  error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]" && exit 1
+    error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
 if [[ $(echo ${templates} | wc -w) == 0 ]]
 then
-  error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]" && exit 1
+    error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
 if [[ $(echo ${subjects} | wc -w) == 0 ]]
 then
-  warning "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz], this is okay if performing multiatlas"
+    warning "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz], this is okay if performing multiatlas"
 fi
 
 if [[ $(( $(echo ${atlases} | wc -w) % 2 )) == 0 ]]
 then
-  warning "Even number of atlases detected, use an odd number to avoid tie label votes"
+    warning "Even number of atlases detected, use an odd number to avoid tie label votes"
 fi
 
 if [[ $(( $(echo ${templates} | wc -w) % 2 )) == 0 ]]
 then
-  warning "Even number of templates detected, use an odd number to avoid tie label votes"
+    warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
 
 if [[ $(( $(find input/atlas -maxdepth 1 -name '*label*' | wc -l) % $(echo ${atlases} | wc -w) )) -ne 0 ]]
 then
-  error "Unbalanced number of label files vs atlases, please ensure one label per type per atlas" && exit 1
+    error "Unbalanced number of label files vs atlases, please ensure one label per type per atlas" && exit 1
 fi
 
 #Sanity check on Analyze files, check that a matching img file exists
 if [[ ${atlases} =~ "hdr" ]]
 then
-  for atlas in ${atlases}
-  do
-    if [[ ! -s input/atlas/$(basename ${atlas} .hdr).img ]]
-    then
-      error "atlas ${atlas} is missing corresponding input/atlas/$(basename ${atlas} .hdr).img file"
-    fi
-  done
+    for atlas in ${atlases}
+    do
+        if [[ ! -s input/atlas/$(basename ${atlas} .hdr).img ]]
+        then
+            error "atlas ${atlas} is missing corresponding input/atlas/$(basename ${atlas} .hdr).img file"
+        fi
+    done
 fi
 
 if [[ ${templates} =~ "hdr" ]]
 then
-  for template in ${templates}
-  do
-    if [[ ! -s input/template/$(basename ${template} .hdr).img ]]
-    then
-      error "template ${template} is missing corresponding input/template/$(basename ${template} .hdr).img file"
-    fi
-  done
+    for template in ${templates}
+    do
+        if [[ ! -s input/template/$(basename ${template} .hdr).img ]]
+        then
+            error "template ${template} is missing corresponding input/template/$(basename ${template} .hdr).img file"
+        fi
+    done
 fi
 
 if [[ ${subjects} =~ "hdr" ]]
 then
-  for subject in ${subjects}
-  do
-    if [[ ! -s input/subject/$(basename ${subject} .hdr).img ]]
-    then
-      error "subject ${subject} is missing corresponding input/subject/$(basename ${subject} .hdr).img file"
-    fi
-  done
+    for subject in ${subjects}
+    do
+        if [[ ! -s input/subject/$(basename ${subject} .hdr).img ]]
+        then
+            error "subject ${subject} is missing corresponding input/subject/$(basename ${subject} .hdr).img file"
+        fi
+    done
 fi
 
 #Alternative registration commands can be specified
@@ -220,15 +220,15 @@ mkdir -p output/labels/majorityvote
 
 for subject in ${subjects}
 do
-  debug "Creating output/labels/candidates/$(basename ${subject}) output/transforms/template-subject/$(basename ${subject})"
-  mkdir -p output/labels/candidates/$(basename ${subject})
-  mkdir -p output/transforms/template-subject/$(basename ${subject})
+    debug "Creating output/labels/candidates/$(basename ${subject}) output/transforms/template-subject/$(basename ${subject})"
+    mkdir -p output/labels/candidates/$(basename ${subject})
+    mkdir -p output/transforms/template-subject/$(basename ${subject})
 done
 
 for template in ${templates}
 do
-  debug "Creating output/transforms/atlas-template/$(basename ${template})"
-  mkdir -p output/transforms/atlas-template/$(basename ${template})
+    debug "Creating output/transforms/atlas-template/$(basename ${template})"
+    mkdir -p output/transforms/atlas-template/$(basename ${template})
 done
 
 #Status printout
@@ -246,8 +246,8 @@ info "  $(find output/labels/candidates -type f | wc -l) of $(( $(echo ${atlases
 info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) voted labels completed"
 if [[ -d output/multiatlas ]]
 then
-  info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
-  info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
+    info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
+    info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
 fi
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
@@ -255,46 +255,46 @@ fi
 
 for stage in ${commandlist}
 do
-  case ${stage} in
-    template|subject|multiatlas|run)
-      if [[ ${QBATCH_SYSTEM} != "local" ]]; then
-        stage_estimate
-      else
-        __qbatch_atlas_template_opts=""
-        __qbatch_template_subject_opts=""
-      fi
-      ;;&
-    template|multiatlas|run)
-      stage_register_atlas_template
-      ;;&
-    multiatlas|multiatlas-resample)
-      stage_multiatlas_resample
-      ;;&
-    multiatlas|multiatlas-vote)
-      stage_multiatlas_vote
-      exit 0
-      ;;
-    subject|run)
-      stage_register_template_subject
-      ;;&
-    resample|run)
-      stage_resample
-      ;;&
-    vote|run)
-      stage_vote
-      ;;&
-    qc|run)
-      stage_qc
-      exit 0
-      ;;
-    cleanup)
-      stage_cleanup
-      exit 0
-      ;;
-    template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
-      #Catch the fall-through of case matching before erroring
-      ;;
-    *)
-      error "Stage not recognized" && help
-  esac
+    case ${stage} in
+        template|subject|multiatlas|run)
+            if [[ ${QBATCH_SYSTEM} != "local" ]]; then
+                stage_estimate
+            else
+                __qbatch_atlas_template_opts=""
+                __qbatch_template_subject_opts=""
+            fi
+            ;;&
+        template|multiatlas|run)
+            stage_register_atlas_template
+            ;;&
+        multiatlas|multiatlas-resample)
+            stage_multiatlas_resample
+            ;;&
+        multiatlas|multiatlas-vote)
+            stage_multiatlas_vote
+            exit 0
+            ;;
+        subject|run)
+            stage_register_template_subject
+            ;;&
+        resample|run)
+            stage_resample
+            ;;&
+        vote|run)
+            stage_vote
+            ;;&
+        qc|run)
+            stage_qc
+            exit 0
+            ;;
+        cleanup)
+            stage_cleanup
+            exit 0
+            ;;
+        template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
+            #Catch the fall-through of case matching before erroring
+            ;;
+        *)
+            error "Stage not recognized" && help
+    esac
 done
