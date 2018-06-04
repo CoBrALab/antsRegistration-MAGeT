@@ -71,7 +71,8 @@ stage_register_atlas_template () {
                     echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
                 fi
             fi
-        done | qbatch ${dryrun} --jobname ${__datetime}-mb_register_atlas_template-${templatename} ${__qbatch_atlas_template_opts} -
+        done > output/jobscripts/${__datetime}-mb_register_atlas_template-${templatename}
+        qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_atlas_template_opts} output/jobscripts/${__datetime}-mb_register_atlas_template-${templatename}
     done
 }
 
@@ -99,7 +100,8 @@ stage_multiatlas_resample () {
                 fi
             done
         done
-    done | qbatch ${dryrun} -j 4 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --jobname ${__datetime}-mb-multiatlas_resample --walltime 4:00:00 -
+    done > output/jobscripts/${__datetime}-mb-multiatlas_resample
+    qbatch ${dryrun} --logdir 'output/logs' -j 4 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --walltime 4:00:00 output/jobscripts/${__datetime}-mb-multiatlas_resample
 }
 
 stage_multiatlas_vote () {
@@ -124,7 +126,8 @@ stage_multiatlas_vote () {
                     mv /tmp/${templatename}_${label} output/multiatlas/labels/majorityvote/${templatename}_${label}"""
             fi
         done
-    done | qbatch ${dryrun} -j 2 -c 100 --depend "${__datetime}-mb-multiatlas_resample*" --jobname ${__datetime}-mb-multiatlas_vote --walltime 4:00:00 -
+    done > output/jobscripts/${__datetime}-mb-multiatlas_vote
+    qbatch ${dryrun} --logdir 'output/logs' -j 2 -c 100 --depend "${__datetime}-mb-multiatlas_resample*" --walltime 4:00:00 output/jobscripts/${__datetime}-mb-multiatlas_vote
 }
 
 
@@ -143,7 +146,8 @@ stage_register_template_subject () {
                 debug ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
                 echo ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
             fi
-        done | qbatch ${dryrun} --jobname ${__datetime}-mb_register_template_subject-${subjectname} ${__qbatch_template_subject_opts} -
+        done > output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+        qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
     done
 }
 
@@ -169,7 +173,8 @@ stage_resample () {
                     fi
                 done
             done
-        done | qbatch ${dryrun} -j 2 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --depend "${__datetime}-mb_register_template_subject-${subjectname}*" --jobname ${__datetime}-mb_resample-${subjectname} --walltime 6:00:00 -
+        done > output/jobscripts/${__datetime}-mb_resample-${subjectname}
+        qbatch ${dryrun} --logdir 'output/logs' -j 2 -c 1000 --depend "${__datetime}-mb_register_atlas_template*" --depend "${__datetime}-mb_register_template_subject-${subjectname}*" --walltime 6:00:00 output/jobscripts/${__datetime}-mb_resample-${subjectname}
     done
 }
 
@@ -197,7 +202,8 @@ stage_vote () {
                 debug ${majorityvotingcmd}
                 echo ${majorityvotingcmd}
             fi
-        done | qbatch ${dryrun} -j 2 -c 1000 --depend "${__datetime}-mb_resample-${subjectname}*" --jobname ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 -
+        done > output/jobscripts/${__datetime}-mb_vote-${subjectname}
+        qbatch ${dryrun} --logdir 'output/logs' -j 2 -c 1000 --depend "${__datetime}-mb_resample-${subjectname}*" --walltime 0:30:00 output/jobscripts/${__datetime}-mb_vote-${subjectname}
     done
 }
 
@@ -218,18 +224,20 @@ stage_qc () {
                 debug mb_qc.sh ${subject} output/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') \
                     output/labels/QC
             fi
-        done | qbatch ${dryrun} -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --jobname ${__datetime}-mb_qc-${subjectname} --walltime 0:30:00 -
+        done > output/jobscripts/${__datetime}-mb_qc-${subjectname}
+        qbatch ${dryrun} --logdir 'output/logs' -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 ${__datetime}-mb_qc-${subjectname}
     done
 }
 
 stage_cleanup () {
     #Tar and delete intermediate files
     info "Calculating tarring and delete cleanup jobs"
-cat <<- EOF | qbatch ${dryrun} --walltime 8:00:00 --depend "${__datetime}-mb*" -
+
+cat <<- EOF > output/jobscripts/${__datetime}-mb_cleanup
 tar -cvf output/transforms/atlas-template.tar.gz output/transforms/atlas-template && rm -rf output/transforms/atlas-template
 tar -cvf output/transforms/template-subject.tar.gz output/transforms/template-subject && rm -rf output/transforms/template-subject
 tar -cvf output/labels/candidates.tar.gz output/labels/candidates && rm -rf output/labels/candidates
 if [[ -d output/multiatlas/labels/candidates ]]; then tar -cvf output/labels/candidates.tar.gz output/multiatlas/labels/candidates && rm -rf output/multiatlas/labels/candidates; fi
 EOF
-
+    qbatch ${dryrun} --logdir 'output/logs' --walltime 8:00:00 --depend "${__datetime}-mb*" output/jobscripts/${__datetime}-mb_cleanup
 }

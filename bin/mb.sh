@@ -15,6 +15,9 @@ export LC_MEASUREMENT=C
 export LC_IDENTIFICATION=C
 export LC_ALL=C
 
+#Setup some extra environment settings
+export QBATCH_SCRIPT_FOLDER="output/.qbatch/"
+
 read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -s --subject         [arg]  Specific subject files to process.
   -t --template        [arg]  Specific template files to process.
@@ -213,10 +216,12 @@ debug "  output/transforms/atlas-template"
 debug "  output/transforms/template-subject"
 debug "  output/labels/candidates"
 debug "  output/labels/majorityvote"
+debug "  output/jobscripts"
 mkdir -p output/transforms/atlas-template
 mkdir -p output/transforms/template-subject
 mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
+mkdir -p output/jobscripts
 
 for subject in ${subjects}
 do
