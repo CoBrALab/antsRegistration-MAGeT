@@ -42,26 +42,26 @@ fi
 if [[ ! -s ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm ]]
 then
 
-  linear_steps=$(generate-iterations-linear.py ${minimum_resolution})
-  antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-    --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-    --use-histogram-matching 0 \
-    --initial-moving-transform [${fixedfile},${movingfile},1] \
-    $(eval echo ${linear_steps})
+    linear_steps=$(generate-iterations-linear.py ${minimum_resolution})
+    antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
+        --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
+        --use-histogram-matching 0 \
+        --initial-moving-transform [${fixedfile},${movingfile},1] \
+        $(eval echo ${linear_steps})
 fi
 
 if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${inputext} ) && ( ${movingmask} != "NULL" ) ]]; then
     antsApplyTransforms -d 3 -i ${movingmask} -o ${outputdir}/$(basename ${movingfile})_labelmask${inputext} \
-    -t ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm -r ${fixedfile} \
-    -n GenericLabel
+        -t ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm -r ${fixedfile} \
+        -n GenericLabel
     fixedmask=${outputdir}/$(basename ${movingfile})_labelmask${inputext}
 fi
 
 nonlinear_steps=$(generate-iterations-SyN-fine.py ${minimum_resolution})
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --verbose --minc \
-  --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-  --use-histogram-matching 0 \
-  --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
-  $(eval echo ${nonlinear_steps})
+    --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
+    --use-histogram-matching 0 \
+    --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
+    $(eval echo ${nonlinear_steps})
 
 rm -rf ${tmpdir}

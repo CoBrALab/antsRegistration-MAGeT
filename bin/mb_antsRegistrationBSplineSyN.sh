@@ -7,9 +7,9 @@ fixedfile=$2
 outputdir=$3
 
 antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 ${MB_VERBOSE:-} --minc \
-  --output [$outputdir/$(basename $movingfile)-$(basename $fixedfile)] \
-  --winsorize-image-intensities [0.005,0.995] --use-histogram-matching 0 \
-  --initial-moving-transform [$fixedfile,$movingfile,1] \
-  --transform Rigid[0.1] --metric Mattes[$fixedfile,$movingfile,1,32,Regular,0.25] --convergence [1000x500x250x100x100,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 4x3x2x1x0vox \
-  --transform Affine[0.1] --metric Mattes[$fixedfile,$movingfile,1,32,Regular,0.25] --convergence [1000x500x250x100x100,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 4x3x2x1x0vox \
-  --transform BSplineSyN[0.1,52,0,3] --metric CC[$fixedfile,$movingfile,1,4] --convergence [100x100x70x50x20,1e-6,10] --shrink-factors 10x6x4x2x1 --smoothing-sigmas 5x3x2x1x0vox
+    --output [$outputdir/$(basename $movingfile)-$(basename $fixedfile)] \
+    --winsorize-image-intensities [0.005,0.995] --use-histogram-matching 0 \
+    --initial-moving-transform [$fixedfile,$movingfile,1] \
+    --transform Rigid[0.1] --metric Mattes[$fixedfile,$movingfile,1,32,Regular,0.25] --convergence [1000x500x250x100x100,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 4x3x2x1x0vox \
+    --transform Affine[0.1] --metric Mattes[$fixedfile,$movingfile,1,32,Regular,0.25] --convergence [1000x500x250x100x100,1e-6,10] --shrink-factors 12x8x4x2x1 --smoothing-sigmas 4x3x2x1x0vox \
+    --transform BSplineSyN[0.1,52,0,3] --metric CC[$fixedfile,$movingfile,1,4] --convergence [100x100x70x50x20,1e-6,10] --shrink-factors 10x6x4x2x1 --smoothing-sigmas 5x3x2x1x0vox
