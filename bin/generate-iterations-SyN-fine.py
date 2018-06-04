@@ -46,7 +46,7 @@ blurs.append("0")
 iterations.append("25")
 
 print("--transform SyN[0.1]", end=' ')
-print("--metric CC[${fixedfile},${movingfile},4]", end=' ')
+print("--metric CC[${fixedfile},${movingfile},1,4]", end=' ')
 print("--convergence [{},1e-6,10]".format("x".join(iterations)), end=' ')
 print("--shrink-factors {}".format("x".join(shrinks)), end=' ')
 print("--smoothing-sigmas {}mm".format("x".join(blurs)), end=' ')
