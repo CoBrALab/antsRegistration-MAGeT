@@ -258,6 +258,8 @@ fi
 #Exit if status exists in command list, doesn't matter if other commands were listed
 [[ ${commandlist} =~ "status" ]] && exit 0
 
+echo ${__invocation} > output/jobscripts/${__datetime}-mb_run_command
+
 for stage in ${commandlist}
 do
     case ${stage} in
