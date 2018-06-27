@@ -2,8 +2,29 @@
 #Functions for various stages of mb.sh
 
 stage_init () {
-    info "Creating input/atlas input/template input/subject"
-    mkdir -p input/atlas input/template input/subject input/model
+  info "Creating input/atlas input/template input/subject"
+  mkdir -p input/atlas input/template input/subject input/model
+}
+
+stage_status () {
+  #Status printout
+  info "Found:"
+  info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
+  info "  $(echo ${labels} | wc -w) labels per atlas in input/atlas"
+  info "  $(echo ${templates} | wc -w) templates in input/template"
+  info "  $(echo ${subjects} | wc -w) subjects in input/subject"
+  info "  $(echo ${models} | wc -w) models in input/models"
+
+  info "Progress:"
+  info "  $(find output/transforms/atlas-template -name '*1_NL.xfm' | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) )) atlas-template registrations completed"
+  info "  $(find output/transforms/template-subject -name '*1_NL.xfm' | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w) )) template-subject registrations completed"
+  info "  $(find output/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) resample labels completed"
+  info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) voted labels completed"
+  if [[ -d output/multiatlas ]]
+  then
+    info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
+    info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
+  fi
 }
 
 stage_estimate () {

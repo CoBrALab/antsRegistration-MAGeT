@@ -236,25 +236,6 @@ do
     mkdir -p output/transforms/atlas-template/$(basename ${template})
 done
 
-#Status printout
-info "Found:"
-info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
-info "  $(echo ${labels} | wc -w) labels per atlas in input/atlas"
-info "  $(echo ${templates} | wc -w) templates in input/template"
-info "  $(echo ${subjects} | wc -w) subjects in input/subject"
-info "  $(echo ${models} | wc -w) models in input/models"
-
-info "Progress:"
-info "  $(find output/transforms/atlas-template -name '*1_NL.xfm' | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) )) atlas-template registrations completed"
-info "  $(find output/transforms/template-subject -name '*1_NL.xfm' | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w) )) template-subject registrations completed"
-info "  $(find output/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) resample labels completed"
-info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) voted labels completed"
-if [[ -d output/multiatlas ]]
-then
-    info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
-    info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
-fi
-
 #Exit if status exists in command list, doesn't matter if other commands were listed
 [[ ${commandlist} =~ "status" ]] && exit 0
 
@@ -262,46 +243,44 @@ echo ${__invocation} > output/jobscripts/${__datetime}-mb_run_command
 
 for stage in ${commandlist}
 do
-    case ${stage} in
-        template|subject|multiatlas|run)
-            if [[ ${QBATCH_SYSTEM} != "local" ]]; then
-                stage_estimate
-            else
-                __qbatch_atlas_template_opts=""
-                __qbatch_template_subject_opts=""
-            fi
-            ;;&
-        template|multiatlas|run)
-            stage_register_atlas_template
-            ;;&
-        multiatlas|multiatlas-resample)
-            stage_multiatlas_resample
-            ;;&
-        multiatlas|multiatlas-vote)
-            stage_multiatlas_vote
-            exit 0
-            ;;
-        subject|run)
-            stage_register_template_subject
-            ;;&
-        resample|run)
-            stage_resample
-            ;;&
-        vote|run)
-            stage_vote
-            ;;&
-        qc|run)
-            stage_qc
-            exit 0
-            ;;
-        cleanup)
-            stage_cleanup
-            exit 0
-            ;;
-        template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
-            #Catch the fall-through of case matching before erroring
-            ;;
-        *)
-            error "Stage not recognized" && help
-    esac
+  case ${stage} in
+    status)
+      stage_status
+      ;;&
+    template|subject|multiatlas|run)
+      stage_estimate
+      ;;&
+    template|multiatlas|run)
+      stage_register_atlas_template
+      ;;&
+    multiatlas|multiatlas-resample)
+      stage_multiatlas_resample
+      ;;&
+    multiatlas|multiatlas-vote)
+      stage_multiatlas_vote
+      exit 0
+      ;;
+    subject|run)
+      stage_register_template_subject
+      ;;&
+    resample|run)
+      stage_resample
+      ;;&
+    vote|run)
+      stage_vote
+      ;;&
+    qc|run)
+      stage_qc
+      exit 0
+      ;;
+    cleanup)
+      stage_cleanup
+      exit 0
+      ;;
+    template|multiatlas|multiatlas-resample|multiatlas-vote|subject|resample|vote|cleanup|run)
+      #Catch the fall-through of case matching before erroring
+      ;;
+    *)
+      error "Stage not recognized" && help
+  esac
 done
