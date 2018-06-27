@@ -28,11 +28,16 @@ stage_status () {
 }
 
 stage_estimate () {
-    #Function estimates the memory requirements for doing registrations based on
-    #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels + c
-    local a=5.454998e-07
-    local b=6.458353e-08
-    local c=1.305710e-01
+  if [[ ${QBATCH_SYSTEM} == "local" ]]; then
+    __qbatch_atlas_template_opts=""
+    __qbatch_template_subject_opts=""
+    return 0
+  fi
+  #Function estimates the memory requirements for doing registrations based on
+  #empircally fit equation memoryGB = a * fixed_voxels + b * moving_voxels + c
+  local a=5.454998e-07
+  local b=6.458353e-08
+  local c=1.305710e-01
 
     info "Checking Resolution of First Atlas"
     local atlas_voxels=$(( $(PrintHeader $(ls -LS ${atlases} | head -1) 2 | sed 's/x/\*/g') ))
