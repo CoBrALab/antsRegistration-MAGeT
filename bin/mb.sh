@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+shopt -s extglob
+shopt -s nullglob
+
 export LANG=C
 export LANGUAGE=C
 export LC_CTYPE=C
@@ -44,10 +47,10 @@ read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
   Multiple commands will run multiple stages. Order is not checked.
 EOF
 
-# shellcheck source=header.sh
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/header.sh"
-# shellcheck source=stages.sh
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stages.sh"
+# shellcheck source=mb_header.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mb_header.sh"
+# shellcheck source=mb_stages.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mb_stages.sh"
 
 ### Command-line argument switches (like -d for debugmode, -h for showing helppage)
 ##############################################################################
@@ -112,27 +115,29 @@ if [[ $# -lt 1 ]]
 then
   commandlist="run"
 else
-  commandlist="$*"
+  commandlist="$@"
 fi
 
 if [[ ${commandlist} =~ "init" ]]
 then
   stage_init
   exit 0
-elif [[ ! (-e input/atlas && -e input/template && -e input/subject )]]
+elif [[ ! (-d input/atlas && -d input/template && -d input/subject )]]
 then
   error "Error, input directories not found, run mb.sh -- init" && exit 1
 fi
 
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
-atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+#atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+atlases=( input/atlas/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
 if [[ ! -z "${arg_s:-}" ]]
 then
   subjects=${arg_s}
   info "Specific subject(s) specified ${subjects}"
 else
-  subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+  #subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
+  subjects=( input/subject/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 fi
 
 if [[ ! -z "${arg_t:-}" ]]
@@ -140,37 +145,39 @@ then
   templates=${arg_t}
   info "Specific template(s) specified ${templates}"
 else
-  templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
+  #templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
+  templates=( input/template/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 fi
 
-models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz' 2> /dev/null || true)
+#models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz' 2> /dev/null || true)
+models=( input/model/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
-labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_label\*/g') | sed 's/input.*label/label/g' || true)
-
+#labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_label\*/g') | sed 's/input.*label/label/g' || true)
+labels =( $(echo ${atlas[0]} | sed -r 's/_(t1|t1w|T1W).*/_label\*/g' ) )
 
 #Sanity Check on inputs
-if [[ $(echo ${atlases} | wc -w) == 0 ]]
+if [[ ${#atlases[@]} == 0 ]]
 then
   error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
-if [[ $(echo ${templates} | wc -w) == 0 ]]
+if [[ ${#templates[@]} == 0 ]]
 then
   error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
-if [[ $(echo ${subjects} | wc -w) == 0 ]]
+if [[ ${#subjects[@]} == 0 ]]
 then
   warning "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz], this is okay if performing multiatlas"
 fi
 
-if [[ $(( $(echo ${atlases} | wc -w) % 2 )) == 0 ]]
+if [[ $(${#atlases[@]} % 2 ) == 0 ]]
 then
   warning "Even number of atlases detected, use an odd number to avoid tie label votes"
 fi
 
-if [[ $(( $(echo ${templates} | wc -w) % 2 )) == 0 ]]
+if [[ $(${#atlases[@]} % 2 ) == 0 ]]
 then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
@@ -181,9 +188,9 @@ then
 fi
 
 #Sanity check on Analyze files, check that a matching img file exists
-if [[ ${atlases} =~ "hdr" ]]
+if [[ "${atlases[*]}" =~ "hdr" ]]
 then
-  for atlas in ${atlases}
+  for atlas in "${atlases[@]}"
   do
     if [[ ! -s input/atlas/$(basename ${atlas} .hdr).img ]]
     then
@@ -192,9 +199,9 @@ then
   done
 fi
 
-if [[ ${templates} =~ "hdr" ]]
+if [[ "${templates[*]}" =~ "hdr" ]]
 then
-  for template in ${templates}
+  for template in "${templates[@]}"
   do
     if [[ ! -s input/template/$(basename ${template} .hdr).img ]]
     then
@@ -203,9 +210,9 @@ then
   done
 fi
 
-if [[ ${subjects} =~ "hdr" ]]
+if [[ "${subjects[*]}" =~ "hdr" ]]
 then
-  for subject in ${subjects}
+  for subject in "${subjects[@]}"
   do
     if [[ ! -s input/subject/$(basename ${subject} .hdr).img ]]
     then
@@ -231,14 +238,14 @@ mkdir -p output/labels/candidates
 mkdir -p output/labels/majorityvote
 mkdir -p output/jobscripts
 
-for subject in ${subjects}
+for subject in "${subjects[@]}"
 do
   debug "Creating output/labels/candidates/$(basename ${subject}) output/transforms/template-subject/$(basename ${subject})"
   mkdir -p output/labels/candidates/$(basename ${subject})
   mkdir -p output/transforms/template-subject/$(basename ${subject})
 done
 
-for template in ${templates}
+for template in "${templates[@]}"
 do
   debug "Creating output/transforms/atlas-template/$(basename ${template})"
   mkdir -p output/transforms/atlas-template/$(basename ${template})
@@ -249,7 +256,7 @@ done
 
 echo ${__invocation} > output/jobscripts/${__datetime}-mb_run_command
 
-for stage in ${commandlist}
+for stage in ${commandlist[@]}
 do
   case ${stage} in
     status)
@@ -289,6 +296,6 @@ do
       #Catch the fall-through of case matching before erroring
       ;;
     *)
-      error "Stage not recognized" && help
+      error "Stage ${stage} not recognized" && help
   esac
 done
