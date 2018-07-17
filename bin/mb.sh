@@ -29,6 +29,7 @@ read -r -d '' __usage <<-'EOF' || true # exits non-zero when EOF encountered
   -m --mem-factor      [arg]  Scaling factor for memory estimates.          Default="1.10"
   -w --walltime-factor [arg]  Scaling factor for time estimates.            Default="1.10"
   -l --label-masking          Use atlas labels to focus registration.
+  -f --fast                   Use float for math and Mattes for SyN reg.
 EOF
 
 read -r -d '' __helptext <<-'EOF' || true # exits non-zero when EOF encountered
@@ -77,6 +78,13 @@ if [ "${arg_l:?}" = "1" ]; then
   __mb_label_masking='1'
 else
   __mb_label_masking=''
+fi
+
+# fast mode
+if [ "${arg_f:?}" = "1" ]; then
+  __mb_fast='1'
+else
+  __mb_fast=''
 fi
 
 # help mode
