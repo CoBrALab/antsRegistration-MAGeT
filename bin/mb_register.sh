@@ -19,7 +19,7 @@ fixedmask="NULL"
 ext=$(basename ${movingfile} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
 minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
 
-if [[ ${__mb_fast} ]]; then
+if [[ ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
   __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,None,1]"
 else

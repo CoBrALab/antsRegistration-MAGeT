@@ -15,7 +15,7 @@ subjectname=$(basename ${subject})
 atlasname=$(basename ${atlas})
 templatename=$(basename ${template})
 
-if [[ ${__mb_fast} ]]; then
+if [[ ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
 else
   __mb_float="--float 0"

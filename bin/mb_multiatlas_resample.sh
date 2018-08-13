@@ -11,6 +11,12 @@ labelname=$1
 atlas=$2
 template=$3
 
+if [[ ${__mb_fast:-} ]]; then
+  __mb_float="--float 1"
+else
+  __mb_float="--float 0"
+fi
+
 atlasname=$(basename $atlas)
 templatename=$(basename $template)
 
