@@ -116,28 +116,25 @@ if [[ $# -lt 1 ]]
 then
   commandlist="run"
 else
-  commandlist="$@"
+  commandlist=( "$@" )
 fi
 
-if [[ ${commandlist} =~ "init" ]]
+if [[ ${commandlist[*]} =~ "init" ]]
 then
-  stage_init
-  exit 0
+  stage_init && exit 0
 elif [[ ! (-d input/atlas && -d input/template && -d input/subject )]]
 then
   error "Error, input directories not found, run mb.sh -- init" && exit 1
 fi
 
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
-#atlases=$(find input/atlas -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
 atlases=( input/atlas/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
 if [[ ! -z "${arg_s:-}" ]]
 then
-  subjects=${arg_s}
-  info "Specific subject(s) specified ${subjects}"
+  subjects=( ${arg_s} )
+  info "Specific subject(s) specified ${subjects[*]}"
 else
-  #subjects=$(find input/subject -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz')
   subjects=( input/subject/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 fi
 
@@ -146,44 +143,43 @@ then
   templates=${arg_t}
   info "Specific template(s) specified ${templates}"
 else
-  #templates=$(find input/template -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr'  -o -name '*_T1w.nii.gz')
   templates=( input/template/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 fi
 
-#models=$(find input/model -maxdepth 1 -name '*_t1.mnc' -o -name '*_t1.nii' -o -name '*_t1.nii.gz' -o -name '*_t1.hdr' -o -name '*_T1w.nii.gz' 2> /dev/null || true)
 models=( input/model/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
-#labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_label\*/g') | sed 's/input.*label/label/g' || true)
-labels=( $(echo ${atlas[0]} | sed -r 's/_(t1|t1w|T1W).*/_label\*/g' ) )
+labels=( $(echo ${atlases[0]} | sed -r 's/_(t1|t1w|T1W).*/_label\*/g' ) )
+labels=( $( for item in ${labels[@]} ; do echo $item ; done | sed 's/input.*label/label/g' || true ) )
 
 #Sanity Check on inputs
-if [[ ${#atlases[@]} == 0 ]]
+if (( ${#atlases[@]} == 0 ))
 then
   error "Zero atlases found, please check input/atlas/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
-if [[ ${#templates[@]} == 0 ]]
+if (( ${#templates[@]} == 0 ))
 then
   error "Zero templates found, please check input/template/*_t1.[mnc, nii, nii.gz]" && exit 1
 fi
 
-if [[ ${#subjects[@]} == 0 ]]
+if (( ${#subjects[@]} == 0 ))
 then
   warning "Zero subjects found, please check input/subject/*_t1.[mnc, nii, nii.gz], this is okay if performing multiatlas"
 fi
 
-if [[ $(${#atlases[@]} % 2 ) == 0 ]]
+if (( ${#atlases[@]} % 2 == 0 ))
 then
   warning "Even number of atlases detected, use an odd number to avoid tie label votes"
 fi
 
-if [[ $(${#atlases[@]} % 2 ) == 0 ]]
+if (( ${#atlases[@]} % 2 == 0 ))
 then
   warning "Even number of templates detected, use an odd number to avoid tie label votes"
 fi
 
-if [[ $(( $(find input/atlas -maxdepth 1 -name '*label*' | wc -l) % $(echo ${atlases} | wc -w) )) -ne 0 ]]
+
+if (( $(find input/atlas -maxdepth 1 -name '*label*' | wc -l) % ${#atlases[@]} != 0 ))
 then
   error "Unbalanced number of label files vs atlases, please ensure one label per type per atlas" && exit 1
 fi
@@ -253,14 +249,14 @@ do
 done
 
 #Exit if status exists in command list, doesn't matter if other commands were listed
-[[ ${commandlist} =~ "status" ]] && exit 0
+[[ ${commandlist[*]} =~ "status" ]] && stage_status && exit 0
 
 echo ${__invocation} > output/jobscripts/${__datetime}-mb_run_command
 
 for stage in "${commandlist[@]}"
 do
   case ${stage} in
-    status)
+    *)
       stage_status
       ;;&
     template|subject|multiatlas|run)

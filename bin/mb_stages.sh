@@ -9,21 +9,21 @@ stage_init () {
 stage_status () {
   #Status printout
   info "Found:"
-  info "  $(echo ${atlases} | wc -w) atlases in input/atlas"
-  info "  $(echo ${labels} | wc -w) labels per atlas in input/atlas"
-  info "  $(echo ${templates} | wc -w) templates in input/template"
-  info "  $(echo ${subjects} | wc -w) subjects in input/subject"
-  info "  $(echo ${models} | wc -w) models in input/models"
+  info "  ${#atlases[@]} atlases in input/atlas"
+  info "  ${#labels[@]} labels per atlas in input/atlas"
+  info "  ${#templates[@]} templates in input/template"
+  info "  ${#subjects[@]} subjects in input/subject"
+  info "  ${#models[@]} models in input/models"
 
   info "Progress:"
-  info "  $(find output/transforms/atlas-template -name '*1_NL.xfm' | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) )) atlas-template registrations completed"
-  info "  $(find output/transforms/template-subject -name '*1_NL.xfm' | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) - $(echo ${templates} | wc -w) )) template-subject registrations completed"
-  info "  $(find output/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) resample labels completed"
-  info "  $(ls output/labels/majorityvote | wc -l) of $(( $(echo ${subjects} | wc -w) * $(echo ${labels} | wc -w) )) voted labels completed"
+  info "  $(find output/transforms/atlas-template -name '*1_NL.xfm' | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} )) atlas-template registrations completed"
+  info "  $(find output/transforms/template-subject -name '*1_NL.xfm' | wc -l) of $(( ${#templates[@]} * ${#subjects[@]} - ${#templates[@]} )) template-subject registrations completed"
+  info "  $(find output/labels/candidates -type f | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} * ${#subjects[@]} * ${#labels[@]} )) resample labels completed"
+  info "  $(ls output/labels/majorityvote | wc -l) of $(( ${#subjects[@]} * ${#labels[@]} )) voted labels completed"
   if [[ -d output/multiatlas ]]
   then
-    info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( $(echo ${atlases} | wc -w) * $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas resample labels completed"
-    info "  $(ls output/multiatlas/labels/majorityvote | wc -l) of $(( $(echo ${templates} | wc -w) * $(echo ${labels} | wc -w) )) multiatlas voted labels completed"
+    info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} * ${#labels[@]} )) multiatlas resample labels completed"
+    info "  $(find output/multiatlas/labels/majorityvote | wc -l) of $(( ${#templates[@]} * ${#labels[@]} )) multiatlas voted labels completed"
   fi
 }
 
@@ -38,34 +38,39 @@ stage_estimate () {
   local a=5.454998e-07
   local b=6.458353e-08
   local c=1.305710e-01
+  local atlas_voxels
+  local template_voxels
+  local subject_voxels
+  local atlas_template_memory
+  local template_subject_memory
+  local atlas_template_walltime_seconds
+  local template_subject_walltime_seconds
 
   info "Checking Resolution of First Atlas"
-  local atlas_voxels=$(( $(PrintHeader $(ls -LS ${atlases} | head -1) 2 | sed 's/x/\*/g') ))
+  atlas_voxels=$(( $(PrintHeader $(ls -LS "${atlases[@]}" | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${atlas_voxels} voxels"
   info "Checking Resolution of First Template"
-  local template_voxels=$(( $(PrintHeader $(ls -LS ${templates} | head -1) 2 | sed 's/x/\*/g') ))
+  template_voxels=$(( $(PrintHeader $(ls -LS "${templates[@]}" | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${template_voxels} voxels"
   info "Checking Resolution of First Subject"
-  local subject_voxels=$(( $(PrintHeader $(ls -LS ${subjects} | head -1) 2 | sed 's/x/\*/g') ))
+  subject_voxels=$(( $(PrintHeader $(ls -LS "${subjects[@]}" | head -1) 2 | sed 's/x/\*/g') ))
   info "  Found ${subject_voxels} voxels"
 
   notice "MAGeTbrain estimates walltime and memory based on files with the largest file size, if some files are uncompressed, this estimate may be incorrect"
 
-  local atlas_template_memory
+
   atlas_template_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${template_voxels} + ${b} * ${atlas_voxels} + ${c}) * ${__memory_scaling_factor}))))")
-  local template_subject_memory
   template_subject_memory=$(python -c "import math; print(max(1, int(math.ceil((${a} *  ${subject_voxels} + ${b} * ${template_voxels} + ${c}) * ${__memory_scaling_factor}))))")
 
   #Estimate walltime from empircally fit equation: seconds = d * fixed_voxels + e * moving_voxels + f
   local d=3.763172e-04
   local e=3.871282e-06
   local f=4.223281e+03
-  local atlas_template_walltime_seconds
+
   atlas_template_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${template_voxels} + ${e} * ${atlas_voxels} + ${f}) * ${__walltime_scaling_factor})))")
-  local template_subject_walltime_seconds
   template_subject_walltime_seconds=$(python -c "import math; print(int(math.ceil((${d} *  ${subject_voxels} + ${e} * ${template_voxels} + ${f}) * ${__walltime_scaling_factor})))")
 
-  #A little bit of special casing for SciNet
+  #A little bit of special casing for Niagara
   if [[ $(printenv) =~ niagara ]]
   then
     __qbatch_atlas_template_opts="--walltime $(( atlas_template_walltime_seconds * 8 * ${QBATCH_CORES:-${QBATCH_PPJ:-1}} * ${QBATCH_CHUNKSIZE:-${QBATCH_PPJ:-1}} / ${QBATCH_PPJ:-1} / 60 ))"
@@ -79,19 +84,21 @@ stage_estimate () {
 
 stage_register_atlas_template () {
   #Atlas to template registration
+  local atlasname
+  local templatename
   info "Computing Atlas to Template Registrations"
-  for template in ${templates}
+  for template in "${templates[@]}"
   do
-    local templatename=$(basename ${template})
-    for atlas in ${atlases}
+    templatename=$(basename ${template})
+    for atlas in "${atlases[@]}"
     do
-      local atlasname=$(basename ${atlas})
+      atlasname=$(basename ${atlas})
       if [[ ! -s output/transforms/atlas-template/${templatename}/${atlasname}-${templatename}1_NL.xfm ]]
       then
         if [[ -n ${__mb_label_masking} ]]
         then
-          debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} $(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*
-          echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} $(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*
+          debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} "$(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*"
+          echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename} "$(echo ${atlas}  | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g' | sed 's/_t1//g')_label*"
         else
           debug ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
           echo ${regcommand} ${atlas} ${template} output/transforms/atlas-template/${templatename}
@@ -105,21 +112,24 @@ stage_register_atlas_template () {
 
 stage_multiatlas_resample () {
   debug "Setting up Multiatlas/Template Output Directories"
+  local templatename
+  local atlasname
+  local labelname
   mkdir -p output/multiatlas/labels/candidates
-  for template in ${templates}
+  for template in "${templates[@]}"
   do
     mkdir -p output/multiatlas/labels/candidates/$(basename ${template})
   done
   info "Computing Multiatlas/Template Label Resamples"
-  for template in ${templates}
+  for template in "${templates[@]}"
   do
-    local templatename=$(basename ${template})
-    for atlas in ${atlases}
+    templatename=$(basename ${template})
+    for atlas in "${atlases[@]}"
     do
-      local atlasname=$(basename ${atlas})
-      for label in ${labels}
+      atlasname=$(basename ${atlas})
+      for label in "${labels[@]}"
       do
-        local labelname=$(basename ${label})
+        labelname=$(basename ${label})
         if [[ ! -s output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-${labelname} ]]
         then
           debug mb_multiatlas_resample.sh ${labelname} ${atlas} ${template}
@@ -134,19 +144,23 @@ stage_multiatlas_resample () {
 
 stage_multiatlas_vote () {
   info "Computing Multiatlas/Template Votes"
+  local templatename
+  local atlasname
+  local labelname
+  local majorityvotingcmd
   mkdir -p output/multiatlas/labels/majorityvote
-  for template in ${templates}
+  for template in "${templates[@]}"
   do
-    local templatename=$(basename ${template})
-    for label in ${labels}
+    templatename=$(basename ${template})
+    for label in "${labels[@]}"
     do
-      local labelname=$(basename ${label})
+      labelname=$(basename ${label})
       if [[ ! -s output/multiatlas/labels/majorityvote/${templatename}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${templatename} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
       then
-        local majorityvotingcmd="mb_multiatlas_vote.sh ${labelname} ${template}"
-        for atlas in ${atlases}
+        majorityvotingcmd="mb_multiatlas_vote.sh ${labelname} ${template}"
+        for atlas in "${atlases[@]}"
         do
-          local atlasname=$(basename ${atlas})
+          atlasname=$(basename ${atlas})
           majorityvotingcmd+=" output/multiatlas/labels/candidates/${templatename}/${atlasname}-${templatename}-${labelname}"
         done
         echo """${majorityvotingcmd} && \
@@ -163,12 +177,14 @@ stage_multiatlas_vote () {
 stage_register_template_subject () {
   #Template to subject registration
   info "Computing Template to Subject Registrations"
-  for subject in ${subjects}
+  local subjectname
+  local templatename
+  for subject in "${subjects[@]}"
   do
-    local subjectname=$(basename ${subject})
-    for template in ${templates}
+    subjectname=$(basename ${subject})
+    for template in "${templates[@]}"
     do
-      local templatename=$(basename ${template})
+      templatename=$(basename ${template})
       #If subject and template name are the same, skip the registration step since it should be identity
       if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}1_NL.xfm) && (${subjectname} != "${templatename}") ]]
       then
@@ -184,18 +200,22 @@ stage_register_template_subject () {
 stage_resample () {
   #Resample candidate labels
   info "Computing Label Resamples"
-  for subject in ${subjects}
+  local subjectname
+  local templatename
+  local atlasname
+  local labelname
+  for subject in "${subjects[@]}"
   do
-    local subjectname=$(basename ${subject})
-    for template in ${templates}
+    subjectname=$(basename ${subject})
+    for template in "${templates[@]}"
     do
-      local templatename=$(basename ${template})
-      for atlas in ${atlases}
+      templatename=$(basename ${template})
+      for atlas in "${atlases[@]}"
       do
-        local atlasname=$(basename ${atlas})
-        for label in ${labels}
+        atlasname=$(basename ${atlas})
+        for label in "${labels[@]}"
         do
-          local labelname=$(basename ${label})
+          labelname=$(basename ${label})
           if [[ ! -s output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname} ]]
           then
             debug mb_resample.sh ${labelname} ${atlas} ${template} ${subject}
@@ -212,21 +232,26 @@ stage_resample () {
 stage_vote () {
   #Voting
   info "Computing Votes"
-  for subject in ${subjects}
+  local subjectname
+  local templatename
+  local atlasname
+  local labelname
+  local majorityvotingcmd
+  for subject in "${subjects[@]}"
   do
-    local subjectname=$(basename ${subject})
-    for label in ${labels}
+    subjectname=$(basename ${subject})
+    for label in "${labels[@]}"
     do
-      local labelname=$(basename ${label})
+      labelname=$(basename ${label})
       if [[ ! -s output/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') ]]
       then
-        local majorityvotingcmd="mb_vote.sh ${labelname} ${subject}"
-        for atlas in ${atlases}
+        majorityvotingcmd="mb_vote.sh ${labelname} ${subject}"
+        for atlas in "${atlases[@]}"
         do
-          local atlasname=$(basename ${atlas})
-          for template in ${templates}
+          atlasname=$(basename ${atlas})
+          for template in "${templates[@]}"
           do
-            local templatename=$(basename ${template})
+            templatename=$(basename ${template})
             majorityvotingcmd+=" output/labels/candidates/${subjectname}/${atlasname}-${templatename}-${subjectname}-${labelname}"
           done
         done
@@ -242,13 +267,15 @@ stage_vote () {
 stage_qc () {
   #Voting
   info "Computing QC Images"
+  local subjectname
+  local labelname
   mkdir -p output/labels/QC
-  for subject in ${subjects}
+  for subject in "${subjects[@]}"
   do
-    local subjectname=$(basename ${subject})
-    for label in ${labels}
+    subjectname=$(basename ${subject})
+    for label in "${labels[@]}"
     do
-      local labelname=$(basename ${label})
+      labelname=$(basename ${label})
       if [[ ! -s output/labels/QC/${subjectname}_${labelname}.jpg ]]
       then
         echo mb_qc.sh ${subject} output/labels/majorityvote/${subjectname}_$(echo ${labelname} | sed -r 's/(.mnc|.nii|.nii.gz|.nrrd)//g')$(echo ${subjectname} | grep -i -o -E '(.mnc|.nii|.nii.gz|.nrrd)') \
@@ -257,8 +284,8 @@ stage_qc () {
           output/labels/QC
       fi
     done > output/jobscripts/${__datetime}-mb_qc-${subjectname}
-    debug qbatch ${dryrun} --logdir 'output/logs' -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 ${__datetime}-mb_qc-${subjectname}
-    qbatch ${dryrun} --logdir 'output/logs' -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 ${__datetime}-mb_qc-${subjectname}
+    debug qbatch ${dryrun} --logdir 'output/logs' -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 output/jobscripts/${__datetime}-mb_qc-${subjectname}
+    qbatch ${dryrun} --logdir 'output/logs' -j 1 -c 1000 --depend ${__datetime}-mb_vote-${subjectname} --walltime 0:30:00 output/jobscripts/${__datetime}-mb_qc-${subjectname}
   done
 }
 
