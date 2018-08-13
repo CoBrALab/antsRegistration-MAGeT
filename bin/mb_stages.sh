@@ -188,12 +188,22 @@ stage_register_template_subject () {
       #If subject and template name are the same, skip the registration step since it should be identity
       if [[ (! -s output/transforms/template-subject/${subjectname}/${templatename}-${subjectname}1_NL.xfm) && (${subjectname} != "${templatename}") ]]
       then
-        debug ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
-        echo ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
+        if [[ -n ${__mb_label_masking} ]]; then
+          debug ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname} output/transforms/atlas-template/${templatename}/*_labelmask*
+          echo ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname} output/transforms/atlas-template/${templatename}/*_labelmask*
+        else
+          debug ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
+          echo ${regcommand} ${template} ${subject} output/transforms/template-subject/${subjectname}
+        fi
       fi
     done > output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
-    debug qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
-    qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+    if [[ -n ${__mb_label_masking} ]]; then
+      debug qbatch ${dryrun} --logdir 'output/logs' --depend "${__datetime}-mb_register_atlas_template*" ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+      qbatch ${dryrun} --logdir 'output/logs' --depend "${__datetime}-mb_register_atlas_template*" ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+    else
+      debug qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+      qbatch ${dryrun} --logdir 'output/logs' ${__qbatch_template_subject_opts} output/jobscripts/${__datetime}-mb_register_template_subject-${subjectname}
+    fi
   done
 }
 
