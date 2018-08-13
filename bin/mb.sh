@@ -52,7 +52,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mb_header.sh"
 # shellcheck source=mb_stages.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mb_stages.sh"
 
-### Command-line argument switches (like -d for debugmode, -h for showing helppage)
+### Command-line argument switches (like -d for debugmode, -h for showing help)
 ##############################################################################
 
 # debug mode
@@ -155,7 +155,7 @@ models=( input/model/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
 #Labels are figured out by looking at only the first atlas, and substituting t1 for label*
 #labels=$(ls $(echo ${atlases} | cut -d " " -f 1 | sed -r 's/_(t1|T1w|t2|T2w).*/_label\*/g') | sed 's/input.*label/label/g' || true)
-labels =( $(echo ${atlas[0]} | sed -r 's/_(t1|t1w|T1W).*/_label\*/g' ) )
+labels=( $(echo ${atlas[0]} | sed -r 's/_(t1|t1w|T1W).*/_label\*/g' ) )
 
 #Sanity Check on inputs
 if [[ ${#atlases[@]} == 0 ]]
@@ -257,7 +257,7 @@ done
 
 echo ${__invocation} > output/jobscripts/${__datetime}-mb_run_command
 
-for stage in ${commandlist[@]}
+for stage in "${commandlist[@]}"
 do
   case ${stage} in
     status)
