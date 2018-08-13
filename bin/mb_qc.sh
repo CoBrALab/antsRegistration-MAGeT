@@ -1,5 +1,8 @@
 #!/bin/bash
 #mb_qc.sh imagefile labelfile outputdir
+if [[ ${__mb_debug:-} ]]; then
+  set -x
+fi
 set -euo pipefail
 
 imagefile=$1

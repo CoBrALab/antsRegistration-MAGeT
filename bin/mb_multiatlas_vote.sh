@@ -1,5 +1,8 @@
 #!/bin/bash
 #mb_vote.sh labelname subjectname <list of candidate labels>
+if [[ ${__mb_debug:-} ]]; then
+  set -x
+fi
 set -euo pipefail
 
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}

@@ -1,5 +1,8 @@
 #!/bin/bash
 ##Registration method based on the defaults of the antsRegistrationSyN.sh script with BSplineSyN from the main distro
+if [[ ${__mb_debug:-} ]]; then
+  set -x
+fi
 set -euo pipefail
 
 movingfile=$1
