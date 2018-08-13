@@ -4,6 +4,8 @@ if [[ ${__mb_debug:-} ]]; then
 fi
 set -euo pipefail
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${THREADS_PER_COMMAND:-$(nproc)}
+export ITK_USE_THREADPOOL=1
+export ITK_GLOBAL_DEFAULT_THREADER=Pool
 
 tmpdir=$(mktemp -d)
 
@@ -17,11 +19,12 @@ movingmask="NULL"
 fixedmask="NULL"
 
 ext=$(basename ${movingfile} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
-minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
+fixed_minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
+moving_minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
 
 if [[ ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
-  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,None,1]"
+  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,Regular,1]"
 else
   __mb_syn_metric="--metric CC[${fixedfile},${movingfile},1,4]"
   __mb_float="--float 0"
@@ -32,21 +35,20 @@ if ((${#labelfiles[@]} > 0)); then
   cp ${labelfiles[0]} ${tmpdir}/mergedmask${ext}
   if ((${#labelfiles[@]} > 1)); then
     for label in "${labelfiles[@]}"; do
-      ImageMath 3 ${tmpdir}/mergedmask${ext} addtozero ${tmpdir}/mergedmask${ext} $label
+      ImageMath 3 ${tmpdir}/mergedmask${ext} addtozero ${tmpdir}/mergedmask${ext} ${label}
     done
   fi
   #Binarize the labels
-  ThresholdImage 3 ${tmpdir}/mergedmask${ext} ${tmpdir}/mergedmask2${ext} 0.5 255 1 0
-  #Morphologically pad the image
-  iMath 3 ${tmpdir}/cropmask${ext} MD ${tmpdir}/mergedmask2${ext} $(python -c "print(int(5.0/min(($(PrintHeader ${movingfile} 1 | sed 's/x/\,/g')))))") 1 ball 1
-  movingmask=${tmpdir}/cropmask${ext}
-  rm ${tmpdir}/mergedmask2${ext}
+  ThresholdImage 3 ${tmpdir}/mergedmask${ext} ${tmpdir}/mergedmask${ext} 0.5 255 1 0
+  #Morphologically pad the labelmask 3mm radius
+  iMath 3 ${tmpdir}/movinglabelmask${ext} MD ${tmpdir}/mergedmask${ext} $(python -c "print(3.0/${moving_minimum_resolution})") 1 ball 1
+  movingmask=${tmpdir}/movinglabelmask${ext}
 fi
 
 if [[ ! -s ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm ]]
 then
 
-  linear_steps=$(generate-affine-iterations-logspace.py ${minimum_resolution})
+  linear_steps=$(mb_generate_affine_iterations_logspace.py ${fixed_minimum_resolution})
   antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
     --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
     --use-histogram-matching 0 \
@@ -61,13 +63,14 @@ if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movi
   fixedmask=${outputdir}/$(basename ${movingfile})_labelmask${ext}
 fi
 
-nonlinear_steps=$(generate-SyN-iterations-logspace.py ${minimum_resolution})
+nonlinear_steps=$(mb_generate_SyN_iterations_logspace.py ${fixed_minimum_resolution})
 antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
   --use-histogram-matching 0 \
   --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
-  --transform SyN[0.1,3,0] \
+  --transform SyN[0.25,3,0] \
   ${__mb_syn_metric} \
-  $(eval echo ${nonlinear_steps})
+  $(eval echo ${nonlinear_steps}) \
+  --masks [${fixedmask},${movingmask}]
 
 rm -rf ${tmpdir}
