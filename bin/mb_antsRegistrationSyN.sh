@@ -1,6 +1,6 @@
 #!/bin/bash
 #Registration method based on the defaults of the antsRegistrationSyN.sh script from the main distro
-if [[ ${__mb_debug:-} ]]; then
+if [[ -z ${__mb_debug:-} ]]; then
   set -x
 fi
 set -euo pipefail
@@ -9,7 +9,7 @@ movingfile=$1
 fixedfile=$2
 outputdir=$3
 
-if [[ ${__mb_fast} ]]; then
+if [[ -z ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
   __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,None,1]"
 else

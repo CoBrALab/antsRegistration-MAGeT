@@ -1,6 +1,6 @@
 #!/bin/bash
 #mb_vote.sh labelname subjectname <list of candidate labels>
-if [[ ${__mb_debug:-} ]]; then
+if [[ -z ${__mb_debug:-} ]]; then
   set -x
 fi
 set -euo pipefail
