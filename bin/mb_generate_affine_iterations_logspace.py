@@ -18,7 +18,7 @@ bins = []
 s0 = 1 / (resscale * 1.20670912432525704588) * 1 / (2 * np.sqrt(2 * np.log(2)))
 
 # Step down in mm subsample space from 16 to minimum res
-for shrink in np.logspace(np.log10(16 * resscale), np.log10(resscale), 9):
+for shrink in np.logspace(np.log10(16 * resscale), 0, 9):
     if shrink < 1:
         break
     shrinks.append(str(int(np.ceil(shrink))))
