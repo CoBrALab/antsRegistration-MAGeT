@@ -19,8 +19,8 @@ movingmask="NULL"
 fixedmask="NULL"
 
 ext=$(basename ${movingfile} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
-fixed_minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
-moving_minimum_resolution=$(python -c "print(min(($(PrintHeader ${fixedfile} 1 | sed 's/x/\,/g'))))")
+fixed_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${fixedfile} 1)\".split(\"x\")]]))")
+moving_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${movingfile} 1)\".split(\"x\")]]))")
 
 if [[ ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
@@ -68,7 +68,7 @@ antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
   --use-histogram-matching 0 \
   --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
-  --transform SyN[0.25,3,0] \
+  --transform "SyN[0.25,3,0]" \
   ${__mb_syn_metric} \
   $(eval echo ${nonlinear_steps}) \
   --masks [${fixedmask},${movingmask}]
