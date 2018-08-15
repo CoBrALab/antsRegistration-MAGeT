@@ -140,7 +140,7 @@ fi
 
 if [[ ! -z "${arg_t:-}" ]]
 then
-  templates=${arg_t}
+  templates=( ${arg_t} )
   info "Specific template(s) specified ${templates}"
 else
   templates=( input/template/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
