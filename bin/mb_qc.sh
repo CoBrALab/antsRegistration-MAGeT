@@ -1,6 +1,6 @@
 #!/bin/bash
 #mb_qc.sh imagefile labelfile outputdir
-if [[ -z ${__mb_debug:-} ]]; then
+if [[ -n ${__mb_debug:-} ]]; then
   set -x
 fi
 set -euo pipefail

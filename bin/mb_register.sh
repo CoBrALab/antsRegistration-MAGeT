@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ -z ${__mb_debug:-} ]]; then
+if [[ -n ${__mb_debug:-} ]]; then
   set -x
 fi
 set -euo pipefail
@@ -22,7 +22,7 @@ ext=$(basename ${movingfile} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
 fixed_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${fixedfile} 1)\".split(\"x\")]]))")
 moving_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${movingfile} 1)\".split(\"x\")]]))")
 
-if [[ -z ${__mb_fast:-} ]]; then
+if [[ -n ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
   __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,Regular,1]"
 else

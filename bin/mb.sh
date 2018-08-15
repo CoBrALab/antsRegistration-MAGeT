@@ -63,7 +63,7 @@ if [ "${arg_d:?}" = "1" ]; then
 fi
 
 # verbose mode
-if [ "${arg_v:?}" = "1" ]; then
+if [[ "${arg_v:?}" = "1" ]]; then
   #set -o verbose
   export MB_VERBOSE='--verbose'
 else
@@ -71,21 +71,21 @@ else
 fi
 
 # dry-run mode
-if [ "${arg_n:?}" = "1" ]; then
+if [[ "${arg_n:?}" = "1" ]]; then
   dryrun='-n'
 else
   dryrun=''
 fi
 
 # label masking
-if [ "${arg_l:?}" = "1" ]; then
+if [[ "${arg_l:?}" = "1" ]]; then
   __mb_label_masking='1'
 else
   __mb_label_masking=''
 fi
 
 # fast mode
-if [ "${arg_f:?}" = "1" ]; then
+if [[ "${arg_f:?}" = "1" ]]; then
   __mb_fast='1'
 else
   __mb_fast=''
@@ -130,7 +130,7 @@ fi
 #Collect a list of atlas/template/subject files, must be named _t1.(nii,nii.gz,mnc, hdr/img)
 atlases=( input/atlas/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 
-if [[ ! -z "${arg_s:-}" ]]
+if [[ -n "${arg_s:-}" ]]
 then
   subjects=( ${arg_s} )
   info "Specific subject(s) specified ${subjects[*]}"
@@ -138,7 +138,7 @@ else
   subjects=( input/subject/*_@(t1|T1w|t1w).@(nii|mnc|nii.gz|hdr) )
 fi
 
-if [[ ! -z "${arg_t:-}" ]]
+if [[ -n "${arg_t:-}" ]]
 then
   templates=( ${arg_t} )
   info "Specific template(s) specified ${templates[*]}"

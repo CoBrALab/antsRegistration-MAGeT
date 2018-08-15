@@ -1,6 +1,6 @@
 #!/bin/bash
 #mb_resample.sh labelname atlasname templatename subjectname
-if [[ -z ${__mb_debug:-} ]]; then
+if [[ -n ${__mb_debug:-} ]]; then
   set -x
 fi
 set -euo pipefail
@@ -15,7 +15,7 @@ subjectname=$(basename ${subject})
 atlasname=$(basename ${atlas})
 templatename=$(basename ${template})
 
-if [[ -z ${__mb_fast:-} ]]; then
+if [[ -n ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
 else
   __mb_float="--float 0"
