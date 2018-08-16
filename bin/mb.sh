@@ -59,7 +59,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mb_stages.sh"
 if [ "${arg_d:?}" = "1" ]; then
   set -o xtrace
   LOG_LEVEL="7"
-  __mb_debug=1
+  export __mb_debug=1
 fi
 
 # verbose mode
@@ -86,9 +86,9 @@ fi
 
 # fast mode
 if [[ "${arg_f:?}" = "1" ]]; then
-  __mb_fast='1'
+  export __mb_fast='1'
 else
-  __mb_fast=''
+  export __mb_fast=''
 fi
 
 # help mode
