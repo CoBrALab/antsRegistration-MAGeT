@@ -72,9 +72,9 @@ fi
 
 # dry-run mode
 if [[ "${arg_n:?}" = "1" ]]; then
-  dryrun='-n'
+  __mb_dryrun='-n'
 else
-  dryrun=''
+  __mb_dryrun=''
 fi
 
 # label masking
