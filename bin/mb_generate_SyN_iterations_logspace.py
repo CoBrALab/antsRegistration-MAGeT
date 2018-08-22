@@ -24,9 +24,8 @@ for scale in np.logspace(np.log10(8 * resscale), np.log10(resscale), 12):
     iterations.append(str(min(6400, int(np.around(50 * (scale)**3)))))
 
 if resscale > 1:
-    scale = resscale
-    while scale > 1:
-        print(scale)
+    scale = resscale / 2
+    while scale >= 1:
         shrinks.append(str(int(np.ceil(scale))))
         blurs.append(str(np.sqrt((scale / resscale)**2 - s0**2)))
         iterations.append(str(min(6400, int(np.around(50 * (scale)**3)))))
