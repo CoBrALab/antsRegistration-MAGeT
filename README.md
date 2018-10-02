@@ -65,11 +65,11 @@ succeed. MAGeTbrain was tested and optimized on 1x1x1 mm isotropic MPRAGE
 subject data. It has been very successfully used on higher resolution data and
 on other contrast types but may require tweaking of time/memory estimates.
 
-## How to run antsRegistration-MAGeT on SciNet
+## How to run antsRegistration-MAGeT on Niagara
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
-> module load gcc/5.2.0 intel/16.0.3 anaconda2/4.1.1 zlib/1.2.8 qbatch/git gnu-parallel/20150822 extras/64_6.4 ANTs/git SimpleITK/1.0
+> module load intel/2018.2 ANTs/20180814 anaconda3/5.2.0
 > source antsRegistration-MAGeT/bin/activate
 > cd /path/to/my/working/Directory
 > mb.sh -- init
@@ -185,15 +185,7 @@ factor for errors in estimates.
 
 ### Multi-spectral
 
-MAGeTbrain now supports multi-spectral registrations (combined contrasts
-from multiple MRI volumes) via the
-``--reg-command mb_register_multispectral.sh`` option. This registration script
-will use any combined contrasts found for both affine and non-linear
-registrations with equal weighting.
-
-Multi-spectral registrations effectively double the amount of scan data used
-during registration, it is suggested that you increase the scaling factor
-``--factor`` to approximately 2 to compensate.
+Currently needs reimplementation
 
 ### ROI (masked) based registrations
 
