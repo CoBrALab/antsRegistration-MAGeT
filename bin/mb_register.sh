@@ -24,9 +24,9 @@ moving_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for 
 
 if [[ -n ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
-  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,Regular,1]"
+  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,None]"
 else
-  __mb_syn_metric="--metric CC[${fixedfile},${movingfile},1,4]"
+  __mb_syn_metric="--metric CC[${fixedfile},${movingfile},1,4,None]"
   __mb_float="--float 0"
 fi
 

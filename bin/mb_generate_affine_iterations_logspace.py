@@ -64,7 +64,7 @@ print("--masks [NULL,NULL]", end=' ')
 # Affine alignment (lsq12) with masks, GC is much more sensitive with a mask
 print("--transform Affine[0.1]", end=' ')
 print(
-    "--metric GC[${{fixedfile}},${{movingfile}},1,{},Regular,0.95]".format(
+    "--metric GC[${{fixedfile}},${{movingfile}},1,{},None]".format(
         bins[6]),
     end=' ')
 print("--convergence [{},1e-6,10]".format("x".join(iterations[4:7])), end=' ')
@@ -75,7 +75,7 @@ print("--masks [${fixedmask},${movingmask}]", end=' ')
 # Finer affine alignment with masks (lsq12)
 print("--transform Affine[0.05]", end=' ')
 print(
-    "--metric GC[${{fixedfile}},${{movingfile}},1,{},Regular,1]".format(
+    "--metric GC[${{fixedfile}},${{movingfile}},1,{},None]".format(
         bins[-1]),
     end=' ')
 print("--convergence [{},1e-7,10]".format("x".join(iterations[6:])), end=' ')
