@@ -39,7 +39,7 @@ if ((${#labelfiles[@]} > 0)); then
     done
   fi
   #Binarize the labels
-  ThresholdImage 3 ${tmpdir}/mergedmask${ext} ${tmpdir}/mergedmask${ext} 0.5 255 1 0
+  ThresholdImage 3 ${tmpdir}/mergedmask${ext} ${tmpdir}/mergedmask${ext} 0.5 inf 1 0
   #Morphologically pad the labelmask 3mm radius
   iMath 3 ${tmpdir}/movinglabelmask${ext} MD ${tmpdir}/mergedmask${ext} $(python -c "print(3.0/${moving_minimum_resolution})") 1 ball 1
   movingmask=${tmpdir}/movinglabelmask${ext}
@@ -47,15 +47,12 @@ fi
 
 if [[ ! -s ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm ]]
 then
-
-  linear_steps=$(mb_generate_iterations_singlestep_affine_resscale.py ${fixed_minimum_resolution})
   antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
     --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
     --use-histogram-matching 0 \
     --initial-moving-transform [${fixedfile},${movingfile},1] \
-    $(eval echo ${linear_steps})
+    $(eval echo $(mb_generate_iterations_singlestep_affine_resscale.py ${fixed_minimum_resolution}))
 fi
-
 
 if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movingmask} != "NULL" ) ]]; then
   antsApplyTransforms -d 3 ${__mb_float} -i ${movingmask} -o ${outputdir}/$(basename ${movingfile})_labelmask${ext} \
