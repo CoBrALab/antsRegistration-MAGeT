@@ -21,6 +21,7 @@ fixedmask="NULL"
 ext=$(basename ${movingfile} | grep -o -E '(.mnc|.nii|.nii.gz|.nrrd|.hdr)')
 fixed_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${fixedfile} 1)\".split(\"x\")]]))")
 moving_minimum_resolution=$(python -c "print(min([abs(x) for x in [float(x) for x in \"$(PrintHeader ${movingfile} 1)\".split(\"x\")]]))")
+fixed_maximum_resolution=$(python -c "print(max([ a*b for a,b in zip([abs(x) for x in [float(x) for x in \"$(PrintHeader ${fixedfile} 1)\".split(\"x\")]],[abs(x) for x in [float(x) for x in \"$(PrintHeader ${fixedfile} 2)\".split(\"x\")]])]))")
 
 if [[ -n ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
@@ -51,7 +52,7 @@ then
     --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
     --use-histogram-matching 0 \
     --initial-moving-transform [${fixedfile},${movingfile},1] \
-    $(eval echo $(mb_generate_iterations_singlestep_affine_resscale.py ${fixed_minimum_resolution}))
+    $(eval echo $(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution} --output multilevel-halving))
 fi
 
 if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movingmask} != "NULL" ) ]]; then
@@ -61,7 +62,7 @@ if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movi
   fixedmask=${outputdir}/$(basename ${movingfile})_labelmask${ext}
 fi
 
-nonlinear_steps=$(mb_generate_iterations_singlestep_resscale.py ${fixed_minimum_resolution})
+nonlinear_steps=$(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution})
 antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
   --use-histogram-matching 0 \
