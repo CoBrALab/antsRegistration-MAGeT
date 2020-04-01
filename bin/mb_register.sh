@@ -50,7 +50,7 @@ if [[ ! -s ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_Gene
 then
   antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
     --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-    --use-histogram-matching 0 \
+    --use-histogram-matching 1 \
     --initial-moving-transform [${fixedfile},${movingfile},1] \
     $(eval echo $(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution} --output multilevel-halving))
 fi
@@ -65,7 +65,7 @@ fi
 nonlinear_steps=$(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution})
 antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-  --use-histogram-matching 0 \
+  --use-histogram-matching 1 \
   --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
   --transform "SyN[0.25,3,0]" \
   ${__mb_syn_metric} \
