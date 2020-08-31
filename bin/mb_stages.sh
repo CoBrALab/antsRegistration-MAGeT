@@ -19,11 +19,11 @@ stage_status () {
   info "  $(find output/transforms/atlas-template -name '*1_NL.xfm' | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} )) atlas-template registrations completed"
   info "  $(find output/transforms/template-subject -name '*1_NL.xfm' | wc -l) of $(( ${#templates[@]} * ${#subjects[@]} - ${#templates[@]} )) template-subject registrations completed"
   info "  $(find output/labels/candidates -type f | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} * ${#subjects[@]} * ${#labels[@]} )) resample labels completed"
-  info "  $(ls output/labels/majorityvote | wc -l) of $(( ${#subjects[@]} * ${#labels[@]} )) voted labels completed"
+  info "  $(find output/labels/majorityvote -type f | wc -l) of $(( ${#subjects[@]} * ${#labels[@]} )) voted labels completed"
   if [[ -d output/multiatlas ]]
   then
     info "  $(find output/multiatlas/labels/candidates -type f | wc -l) of $(( ${#atlases[@]} * ${#templates[@]} * ${#labels[@]} )) multiatlas resample labels completed"
-    info "  $(find output/multiatlas/labels/majorityvote | wc -l) of $(( ${#templates[@]} * ${#labels[@]} )) multiatlas voted labels completed"
+    info "  $(find output/multiatlas/labels/majorityvote -type f | wc -l) of $(( ${#templates[@]} * ${#labels[@]} )) multiatlas voted labels completed"
   fi
 }
 
