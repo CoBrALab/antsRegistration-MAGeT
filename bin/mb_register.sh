@@ -25,7 +25,7 @@ fixed_maximum_resolution=$(python -c "print(max([ a*b for a,b in zip([abs(x) for
 
 if [[ -n ${__mb_fast:-} ]]; then
   __mb_float="--float 1"
-  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,256,None]"
+  __mb_syn_metric="--metric Mattes[${fixedfile},${movingfile},1,32,None]"
 else
   __mb_syn_metric="--metric CC[${fixedfile},${movingfile},1,4,None]"
   __mb_float="--float 0"
@@ -50,12 +50,11 @@ if [[ ! -s ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_Gene
 then
   antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
     --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-    --use-histogram-matching 1 \
     --initial-moving-transform [${fixedfile},${movingfile},1] \
-    $(eval echo $(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution} --output multilevel-halving))
+    $(eval echo $(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution} --output multilevel-halving --convergence 1e-7))
 fi
 
-if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movingmask} != "NOMASk" ) ]]; then
+if [[ (! -s ${outputdir}/$(basename ${movingfile})_labelmask${ext} ) && ( ${movingmask} != "NOMASK" ) ]]; then
   antsApplyTransforms -d 3 ${__mb_float} -i ${movingmask} -o ${outputdir}/$(basename ${movingfile})_labelmask${ext} \
     -t ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm -r ${fixedfile} \
     -n GenericLabel
@@ -65,7 +64,6 @@ fi
 nonlinear_steps=$(ants_generate_iterations.py --min ${fixed_minimum_resolution} --max ${fixed_maximum_resolution})
 antsRegistration --dimensionality 3 ${__mb_float} ${MB_VERBOSE:-} --minc \
   --output [${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})] \
-  --use-histogram-matching 1 \
   --initial-moving-transform ${outputdir}/$(basename ${movingfile})-$(basename ${fixedfile})0_GenericAffine.xfm \
   --transform "SyN[0.25,3,0]" \
   ${__mb_syn_metric} \
