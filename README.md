@@ -69,7 +69,7 @@ on other contrast types but may require tweaking of time/memory estimates.
 
 ```sh
 > git clone https://github.com/CobraLab/antsRegistration-MAGeT.git
-> module load intel/2018.2 ANTs/20180814 anaconda3/5.2.0
+> module load cobralab/2019b
 > source antsRegistration-MAGeT/bin/activate
 > cd /path/to/my/working/Directory
 > mb.sh -- init
