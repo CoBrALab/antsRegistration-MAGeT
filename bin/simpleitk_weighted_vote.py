@@ -89,7 +89,7 @@ if __name__ == "__main__":
             print("Reading labels from {}...".format(filename))
 
         # get all the candidate segmentations
-        labelimg = sitk.ReadImage(filename)
+        labelimg = sitk.ReadImage(filename, sitk.sitkUInt32)
 
         structure = labelimg > 0  # find the structural voxels
         label_shape_analysis = sitk.LabelShapeStatisticsImageFilter()
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     nimg = len(labelimg_list)
     for n, img in enumerate(labelimg_list):
         if opt.verbose:
-            print("Processing image {}, {} of {}".format(opt.input_labels[n], n, nimg))
+            print("Processing image {}, {} of {}".format(opt.input_labels[n], n+1, nimg))
 
         label_array = sitk.GetArrayFromImage(img)[
             bbox[2] : bbox[5], bbox[1] : bbox[4], bbox[0] : bbox[3]
@@ -140,8 +140,8 @@ if __name__ == "__main__":
                     label_array.shape[0],
                     label_array.shape[1],
                     label_array.shape[2],
-                )
-            )
+                ),
+            dtype=np.float64)
         # make sure that they are the same in each image
         elif np.asarray(np.unique(label_array) != label_values).any():
             warn(
@@ -155,8 +155,9 @@ if __name__ == "__main__":
             votes[i][np.where(label_array == value)] += opt.weights[n]
 
     mode = np.argmin(votes, axis=0)  # find the majority votes
-    probability = votes / np.sum(opt.weights)  # Find probability maps
-    labels = np.zeros(votes[0].shape, dtype=np.uint8)  # array of labels
+    if opt.probabilities:
+      probability = votes / np.sum(opt.weights)  # Find probability maps
+    labels = np.zeros(votes[0].shape, dtype=np.uint32)  # array of labels
 
     for i, value in enumerate(label_values.tolist()):
         # assign the majority vote to all voxels
