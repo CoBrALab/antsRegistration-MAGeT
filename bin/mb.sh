@@ -509,7 +509,15 @@ for subject in "${subjects[@]}"; do
 	for label in "${labels[@]}"; do
 		labelname=$(basename ${label} | grep -E -o '_label.*$')
 		if [[ ! -s ${_arg_output_dir}/labels/majorityvote/${subjectname}${labelname} ]]; then
-			echo ImageMath 3 ${_arg_output_dir}/labels/majorityvote/${subjectname}${labelname} MajorityVoting ${_arg_output_dir}/intermediate/labels/${subjectname}/*${subjectname}${labelname}
+			label_array=()
+			for atlas in "${atlases[@]}"; do
+				atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
+				for template in "${templates[@]}"; do
+					templatename=$(basename ${template} | extension_strip | spectra_strip)
+					label_array+=( ${_arg_output_dir}/intermediate/labels/${subjectname}/${atlasname}-${templatename}-${subjectname}${labelname} )
+				done
+			done
+			echo ImageMath 3 ${_arg_output_dir}/labels/majorityvote/${subjectname}${labelname} MajorityVoting "${label_array[@]}"
 		fi
 	done
 done
