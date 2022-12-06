@@ -370,7 +370,7 @@ else
 fi
 
 mkdir -p ${_arg_output_dir}/{logs,jobs}/${__datetime}
-mkdir -p ${_arg_output_dir}/intermediate/{atlas-template,template-subject,labels}
+mkdir -p ${_arg_output_dir}/intermediate/transforms/{atlas-template,template-subject}
 mkdir -p ${_arg_output_dir}/labels/majorityvote
 
 
