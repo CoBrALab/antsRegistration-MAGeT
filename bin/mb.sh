@@ -390,13 +390,31 @@ info "Computing atlas to template linear transforms"
 for template in "${templates[@]}"; do
 	templatename=$(basename ${template} | extension_strip | spectra_strip)
 	mkdir -p ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}
+	# Check if a mask is available and use it
+	fixed_mask=""
+	masks=( ${_arg_input_dir}/templates/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii}  )
+	for mask in "${masks[@]}"; do
+		if [[ -s ${mask} ]]; then
+			fixed_mask="--fixed-mask ${mask} "
+		fi
+	done
 	for atlas in "${atlases[@]}"; do
 		atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
 		if [[ ! ( -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0GenericAffine.mat ) ]]; then
+			# Check if a mask is available and use it
+			moving_mask=""
+			masks=( ${_arg_input_dir}/atlases/masks/${atlasname}_mask{*mnc,*nrrd,*nii.gz,*nii} )
+			for mask in "${masks[@]}"; do
+				if [[ -s ${mask} ]]; then
+					moving_mask="--moving-mask ${mask} "
+				fi
+			done
 			echo antsRegistration_affine_SyN.sh \
 				${_arg_fast} \
 				--skip-nonlinear \
 				--histogram-matching \
+				${moving_mask} \
+				${fixed_mask} \
 				${atlas} ${template} \
 				${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_
 		fi
@@ -408,13 +426,31 @@ info "Computing atlas to template non-linear transforms"
 for template in "${templates[@]}"; do
 	templatename=$(basename ${template} | extension_strip | spectra_strip)
 	mkdir -p ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}
+	# Check if a mask is available and use it
+	fixed_mask=""
+	masks=( ${_arg_input_dir}/templates/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii}  )
+	for mask in "${masks[@]}"; do
+		if [[ -s ${mask} ]]; then
+			fixed_mask="--fixed-mask ${mask} "
+		fi
+	done
 	for atlas in "${atlases[@]}"; do
 		atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
 		if [[ ! ( -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1_NL.xfm || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1Warp.nii.gz ) ]]; then
+			# Check if a mask is available and use it
+			moving_mask=""
+			masks=( ${_arg_input_dir}/atlases/masks/${atlasname}_mask{*mnc,*nrrd,*nii.gz,*nii} )
+			for mask in "${masks[@]}"; do
+				if [[ -s ${mask} ]]; then
+					moving_mask="--moving-mask ${mask} "
+				fi
+			done
 			echo antsRegistration_affine_SyN.sh --clobber \
 				${_arg_fast} \
 				--skip-linear \
 				--histogram-matching \
+				${moving_mask} \
+				${fixed_mask} \
 				--initial-transform ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
 				${atlas} ${template} \
 				${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_
@@ -426,6 +462,14 @@ info "Computing template to subject linear transforms"
 # Perform linear template to subject registration
 for subject in "${subjects[@]}"; do
 	subjectname=$(basename ${subject} | extension_strip | spectra_strip)
+	# Check if a mask is available and use it
+	fixed_mask=""
+	masks=( ${_arg_input_dir}/templates/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii}  )
+	for mask in "${masks[@]}"; do
+		if [[ -s ${mask} ]]; then
+			fixed_mask="--fixed-mask ${mask} "
+		fi
+	done
 	for template in "${templates[@]}"; do
 		templatename=$(basename ${template} | extension_strip | spectra_strip)
 		mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
@@ -433,9 +477,20 @@ for subject in "${subjects[@]}"; do
 			continue
 		else
 			if [[ ! ( -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0GenericAffine.mat ) ]]; then
+				# Check if a mask is available and use it
+				moving_mask=""
+				masks=( ${_arg_input_dir}/atlases/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii} )
+				for mask in "${masks[@]}"; do
+					if [[ -s ${mask} ]]; then
+						moving_mask="--moving-mask ${mask} "
+					fi
+				done
 				echo antsRegistration_affine_SyN.sh \
 					${_arg_fast} \
 					--skip-nonlinear \
+					--histogram-matching \
+					${moving_mask} \
+					${fixed_mask} \
 					${template} ${subject} \
 					${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_
 			fi
@@ -447,6 +502,14 @@ info "Computing template to subject non-linear transforms"
 # Perform non-linear template to subject registration
 for subject in "${subjects[@]}"; do
 	subjectname=$(basename ${subject} | extension_strip | spectra_strip)
+	# Check if a mask is available and use it
+	fixed_mask=""
+	masks=( ${_arg_input_dir}/templates/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii}  )
+	for mask in "${masks[@]}"; do
+		if [[ -s ${mask} ]]; then
+			fixed_mask="--fixed-mask ${mask} "
+		fi
+	done
 	for template in "${templates[@]}"; do
 		templatename=$(basename ${template} | extension_strip | spectra_strip)
 		mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
@@ -454,10 +517,20 @@ for subject in "${subjects[@]}"; do
 			continue
 		else
 			if [[ ! ( -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1_NL.xfm || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1Warp.nii.gz ) ]]; then
+				# Check if a mask is available and use it
+				moving_mask=""
+				masks=( ${_arg_input_dir}/atlases/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii} )
+				for mask in "${masks[@]}"; do
+					if [[ -s ${mask} ]]; then
+						moving_mask="--moving-mask ${mask} "
+					fi
+				done
 				echo antsRegistration_affine_SyN.sh --clobber \
 					${_arg_fast} \
 					--skip-linear \
 					--histogram-matching \
+					${moving_mask} \
+					${fixed_mask} \
 					--initial-transform ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
 					${template} ${subject} \
 					${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_
