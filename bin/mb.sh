@@ -427,9 +427,14 @@ if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; 
       atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
       templatemasks+=( "${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5" )
       if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5 ]]; then
+        if [[ "${atlas}" == *mnc && "${template}" == *mnc ]]; then
+          transform_ext=0_GenericAffine.xfm
+        else
+          transform_ext=0GenericAffine.mat
+        fi
         echo antsApplyTransforms -d 3 -i ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 \
           -r ${template} \
-          -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+          -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_ext} \
           -o ${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5 \
           -n GenericLabel
       fi
@@ -474,13 +479,18 @@ for template in "${templates[@]}"; do
         moving_mask="--moving-mask ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5"
         fixed_mask="--fixed-mask ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5"
       fi
+      if [[ "${atlas}" == *mnc && "${template}" == *mnc ]]; then
+        transform_ext=0_GenericAffine.xfm
+      else
+        transform_ext=0GenericAffine.mat
+      fi
       echo antsRegistration_affine_SyN.sh --clobber \
         ${_arg_fast} \
         --skip-linear \
         --histogram-matching \
         ${moving_mask} \
         ${fixed_mask} \
-        --initial-transform ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+        --initial-transform ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_ext} \
         ${atlas} ${template} \
         ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_
     fi
@@ -545,9 +555,14 @@ if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; 
       fi
       subjectmasks+=( "${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5" )
       if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5 ]]; then
+        if [[ "${subject}" == *mnc && "${template}" == *mnc ]]; then
+          transform_ext=0_GenericAffine.xfm
+        else
+          transform_ext=0GenericAffine.mat
+        fi
         echo antsApplyTransforms -d 3 -i ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 \
           -r ${subject} \
-          -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
+          -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_ \
           -o ${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5 \
           -n GenericLabel
       fi
@@ -589,13 +604,18 @@ for subject in "${subjects[@]}"; do
           moving_mask="--moving-mask ${mask} "
         fi
       done
+      if [[ "${subject}" == *mnc && "${template}" == *mnc ]]; then
+        transform_ext=0_GenericAffine.xfm
+      else
+        transform_ext=0GenericAffine.mat
+      fi
       echo antsRegistration_affine_SyN.sh --clobber \
         ${_arg_fast} \
         --skip-linear \
         --histogram-matching \
         ${moving_mask} \
         ${fixed_mask} \
-        --initial-transform ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
+        --initial-transform ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_${transform_ext} \
         ${template} ${subject} \
         ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_
     fi
@@ -615,19 +635,26 @@ for subject in "${subjects[@]}"; do
       for label in "${labels[@]}"; do
         labelname=$(basename ${label} | grep -E -o '_label.*$')
         if [[ ! -s ${_arg_output_dir}/intermediate/labels/${subjectname}/${atlasname}-${templatename}-${subjectname}${labelname} ]]; then
+          if [[ "${subject}" == *mnc && "${template}" == *mnc ]]; then
+            transform_aff_ext=0_GenericAffine.xfm
+            transform_nlin_ext=1_NL.xfm
+          else
+            transform_aff_ext=0GenericAffine.mat
+            transform_nlin_ext=1Warp.nii.gz
+          fi
           if [[ ${templatename} == ${subjectname} ]]; then
             echo antsApplyTransforms -d 3 --verbose -n GenericLabel \
               -i ${label} -r ${subject} \
-              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1_NL.xfm \
-              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_nlin_ext} \
+              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_aff_ext} \
               -o ${_arg_output_dir}/intermediate/labels/${subjectname}/${atlasname}-${templatename}-${subjectname}${labelname}
           else
             echo antsApplyTransforms -d 3 --verbose -n GenericLabel \
               -i ${label} -r ${subject} \
-              -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1_NL.xfm \
-              -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
-              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1_NL.xfm \
-              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+              -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_${transform_nlin_ext} \
+              -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_${transform_aff_ext} \
+              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_nlin_ext} \
+              -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_${transform_aff_ext} \
               -o ${_arg_output_dir}/intermediate/labels/${subjectname}/${atlasname}-${templatename}-${subjectname}${labelname}
           fi
         fi
