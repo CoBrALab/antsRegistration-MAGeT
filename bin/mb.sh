@@ -347,6 +347,7 @@ fi
 
 mkdir -p ${_arg_output_dir}/{logs,jobs}/${__datetime}
 mkdir -p ${_arg_output_dir}/intermediate/transforms/{atlas-template,template-subject}
+mkdir -p ${_arg_output_dir}/intermediate/labelmasks/{atlases,templates,subjects}
 mkdir -p ${_arg_output_dir}/labels/majorityvote
 
 shopt -s nullglob
@@ -357,7 +358,22 @@ subjects=(${_arg_input_dir}/subjects/brains/*_${_arg_primary_spectra}{*mnc,*nrrd
 
 # Generate atlas masks for label masking (if used)
 if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
-  echo "TODO"
+  # Figure out the names of all the labels to loop over
+  atlasname=$(basename ${atlases[0]} | extension_strip | spectra_strip)
+	labels=(${_arg_input_dir}/atlases/labels/${atlasname}_label*{*mnc,*nrrd,*nii.gz,*nii})
+  for atlas in "${atlases[@]}"; do
+    atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
+    label_array=()
+    for label in "${labels[@]}"; do
+      labelname=$(basename ${label} | grep -E -o '_label.*$')
+      label_array+=(${_arg_input_dir}/atlases/labels/${atlasname}${labelname})
+    done
+    if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 ]]; then
+      echo "AverageImages 3 ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 0 "${label_array[@]}" && \
+            ThresholdImage 3 ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 1e-12 Inf 1 0 && \
+            iMath 3 ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 MD ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 8 1 ball 1"
+    fi
+  done
 fi
 
 info "Computing atlas to template linear transforms"
@@ -375,7 +391,8 @@ for template in "${templates[@]}"; do
   done
   for atlas in "${atlases[@]}"; do
     atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
-    if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0GenericAffine.mat) ]]; then
+    if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+        || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0GenericAffine.mat) ]]; then
       # Check if a mask is available and use it
       moving_mask=""
       masks=(${_arg_input_dir}/atlases/masks/${atlasname}_mask{*mnc,*nrrd,*nii.gz,*nii})
@@ -384,6 +401,10 @@ for template in "${templates[@]}"; do
           moving_mask="--moving-mask ${mask} "
         fi
       done
+      if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
+        [[ -n ${moving_mask} ]] && info "Replacing supplied atlas mask ${mask} with generated label mask"
+        moving_mask="--moving-mask ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5"
+      fi
       echo antsRegistration_affine_SyN.sh \
         ${_arg_fast} \
         --skip-nonlinear \
@@ -395,6 +416,33 @@ for template in "${templates[@]}"; do
     fi
   done
 done
+
+# Resample atlas-to-template labelmasks
+if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
+  info "Computing resampling of label masks into template space"
+  for template in "${templates[@]}"; do
+    templatemasks=()
+    templatename=$(basename ${template} | extension_strip | spectra_strip)
+    for atlas in "${atlases[@]}"; do
+      atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
+      templatemasks+=( "${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5" )
+      if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5 ]]; then
+        echo antsApplyTransforms -d 3 -i ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5 \
+          -r ${template} \
+          -t ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_0_GenericAffine.xfm \
+          -o ${_arg_output_dir}/intermediate/labelmasks/templates/${atlasname}-${templatename}_mask.h5 \
+          -n GenericLabel
+      fi
+    done
+    # Trick to or all the files, AverageImages and re-binarize
+    if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 ]]; then
+      echo "AverageImages 3 ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 0 ${templatemasks[@]} \
+        && ThresholdImage 3 ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 \
+                            ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 1e-12 Inf 1 0"
+    fi
+  done
+fi
+
 
 info "Computing atlas to template non-linear transforms"
 # Perform non-linear atlas to template registration
@@ -411,7 +459,8 @@ for template in "${templates[@]}"; do
   done
   for atlas in "${atlases[@]}"; do
     atlasname=$(basename ${atlas} | extension_strip | spectra_strip)
-    if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1_NL.xfm || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1Warp.nii.gz) ]]; then
+    if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1_NL.xfm \
+        || -s ${_arg_output_dir}/intermediate/transforms/atlas-template/${templatename}/${atlasname}-${templatename}_1Warp.nii.gz) ]]; then
       # Check if a mask is available and use it
       moving_mask=""
       masks=(${_arg_input_dir}/atlases/masks/${atlasname}_mask{*mnc,*nrrd,*nii.gz,*nii})
@@ -420,6 +469,11 @@ for template in "${templates[@]}"; do
           moving_mask="--moving-mask ${mask} "
         fi
       done
+      if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
+        [[ -n ${moving_mask} ]] && info "Replacing supplied atlas mask ${mask} with generated label mask"
+        moving_mask="--moving-mask ${_arg_output_dir}/intermediate/labelmasks/atlases/${atlasname}_mask.h5"
+        fixed_mask="--fixed-mask ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5"
+      fi
       echo antsRegistration_affine_SyN.sh --clobber \
         ${_arg_fast} \
         --skip-linear \
@@ -437,9 +491,10 @@ info "Computing template to subject linear transforms"
 # Perform linear template to subject registration
 for subject in "${subjects[@]}"; do
   subjectname=$(basename ${subject} | extension_strip | spectra_strip)
+  mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
   # Check if a mask is available and use it
   fixed_mask=""
-  masks=(${_arg_input_dir}/templates/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii})
+  masks=(${_arg_input_dir}/subjects/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii})
   for mask in "${masks[@]}"; do
     if [[ -s ${mask} ]]; then
       fixed_mask="--fixed-mask ${mask} "
@@ -447,19 +502,23 @@ for subject in "${subjects[@]}"; do
   done
   for template in "${templates[@]}"; do
     templatename=$(basename ${template} | extension_strip | spectra_strip)
-    mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
     if [[ ${templatename} == ${subjectname} ]]; then
       continue
     else
-      if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0GenericAffine.mat) ]]; then
+      if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
+          || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0GenericAffine.mat) ]]; then
         # Check if a mask is available and use it
         moving_mask=""
-        masks=(${_arg_input_dir}/atlases/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii})
+        masks=(${_arg_input_dir}/templates/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii})
         for mask in "${masks[@]}"; do
           if [[ -s ${mask} ]]; then
             moving_mask="--moving-mask ${mask} "
           fi
         done
+        if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
+          [[ -n ${moving_mask} ]] && info "Replacing supplied template mask ${mask} with generated label mask"
+          moving_mask="--moving-mask ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5"
+        fi
         echo antsRegistration_affine_SyN.sh \
           ${_arg_fast} \
           --skip-nonlinear \
@@ -473,13 +532,43 @@ for subject in "${subjects[@]}"; do
   done
 done
 
+# Resample template-to-subject labelmasks
+if [[ ${_arg_label_masking} == "partial" || ${_arg_label_masking} == "full" ]]; then
+  info "Computing resampling of label masks into subject space"
+  for subject in "${subjects[@]}"; do
+    subjectmasks=()
+    subjectname=$(basename ${subject} | extension_strip | spectra_strip)
+    for template in "${templates[@]}"; do
+      templatename=$(basename ${template} | extension_strip | spectra_strip)
+      if [[ ${templatename} == ${subjectname} ]]; then
+        continue
+      fi
+      subjectmasks+=( "${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5" )
+      if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5 ]]; then
+        echo antsApplyTransforms -d 3 -i ${_arg_output_dir}/intermediate/labelmasks/templates/${templatename}_mask.h5 \
+          -r ${subject} \
+          -t ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
+          -o ${_arg_output_dir}/intermediate/labelmasks/subjects/${templatename}-${subjectname}_mask.h5 \
+          -n GenericLabel
+      fi
+    done
+    # Trick to or all the files, AverageImages and re-binarize
+    if [[ ! -s ${_arg_output_dir}/intermediate/labelmasks/subjects/${subjectname}_mask.h5 ]]; then
+      echo "AverageImages 3 ${_arg_output_dir}/intermediate/labelmasks/subjects/${subjectname}_mask.h5 0 ${subjectmasks[@]} \
+        && ThresholdImage 3 ${_arg_output_dir}/intermediate/labelmasks/subjects/${subjectname}_mask.h5 \
+                            ${_arg_output_dir}/intermediate/labelmasks/subjects/${subjectname}_mask.h5 1e-12 Inf 1 0"
+    fi
+  done
+fi
+
 info "Computing template to subject non-linear transforms"
 # Perform non-linear template to subject registration
 for subject in "${subjects[@]}"; do
   subjectname=$(basename ${subject} | extension_strip | spectra_strip)
+  mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
   # Check if a mask is available and use it
   fixed_mask=""
-  masks=(${_arg_input_dir}/templates/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii})
+  masks=(${_arg_input_dir}/subjects/masks/${subjectname}_mask{*mnc,*nrrd,*nii.gz,*nii})
   for mask in "${masks[@]}"; do
     if [[ -s ${mask} ]]; then
       fixed_mask="--fixed-mask ${mask} "
@@ -487,29 +576,28 @@ for subject in "${subjects[@]}"; do
   done
   for template in "${templates[@]}"; do
     templatename=$(basename ${template} | extension_strip | spectra_strip)
-    mkdir -p ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}
     if [[ ${templatename} == ${subjectname} ]]; then
       continue
-    else
-      if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1_NL.xfm || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1Warp.nii.gz) ]]; then
-        # Check if a mask is available and use it
-        moving_mask=""
-        masks=(${_arg_input_dir}/atlases/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii})
-        for mask in "${masks[@]}"; do
-          if [[ -s ${mask} ]]; then
-            moving_mask="--moving-mask ${mask} "
-          fi
-        done
-        echo antsRegistration_affine_SyN.sh --clobber \
-          ${_arg_fast} \
-          --skip-linear \
-          --histogram-matching \
-          ${moving_mask} \
-          ${fixed_mask} \
-          --initial-transform ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
-          ${template} ${subject} \
-          ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_
-      fi
+    fi
+    if [[ ! (-s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1_NL.xfm \
+        || -s ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_1Warp.nii.gz) ]]; then
+      # Check if a mask is available and use it
+      moving_mask=""
+      masks=(${_arg_input_dir}/templates/masks/${templatename}_mask{*mnc,*nrrd,*nii.gz,*nii})
+      for mask in "${masks[@]}"; do
+        if [[ -s ${mask} ]]; then
+          moving_mask="--moving-mask ${mask} "
+        fi
+      done
+      echo antsRegistration_affine_SyN.sh --clobber \
+        ${_arg_fast} \
+        --skip-linear \
+        --histogram-matching \
+        ${moving_mask} \
+        ${fixed_mask} \
+        --initial-transform ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_0_GenericAffine.xfm \
+        ${template} ${subject} \
+        ${_arg_output_dir}/intermediate/transforms/template-subject/${subjectname}/${templatename}-${subjectname}_
     fi
   done
 done
