@@ -46,7 +46,7 @@ MB_ENV=$(_script_home)
 export MB_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
-PATH="$MB_ENV/bin:$PATH"
+PATH="$MB_ENV/bin:$MB_ENV/bin/minc-toolkit-extras:$PATH"
 export PATH
 
 # This should detect bash and zsh, which have a hash command that must
